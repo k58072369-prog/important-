@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "EDU SMART OS"
+version = "1.0.0"
+id = "artifacts/edu-smart-os"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23917
+
+[services.development]
+run = "pnpm --filter @workspace/edu-smart-os run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/edu-smart-os", "run", "build" ]
+publicDir = "artifacts/edu-smart-os/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23917"
+BASE_PATH = "/"

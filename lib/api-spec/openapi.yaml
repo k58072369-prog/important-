@@ -1,0 +1,1565 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: EDU SMART OS API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: dashboard
+    description: Dashboard stats and aggregations
+  - name: students
+    description: Student management
+  - name: teachers
+    description: Teacher management
+  - name: circles
+    description: Quran circle management
+  - name: sessions
+    description: Session management
+  - name: attendance
+    description: Attendance tracking
+  - name: memorization
+    description: Memorization and revision tracking
+  - name: finance
+    description: Finance and invoices
+  - name: notifications
+    description: Notifications
+  - name: leaderboard
+    description: Leaderboard and rankings
+  - name: ai
+    description: AI analysis and insights
+  - name: reports
+    description: Reports and analytics
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /students:
+    get:
+      operationId: listStudents
+      tags: [students]
+      summary: List all students
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: circle_id
+          in: query
+          schema: { type: string }
+        - name: level
+          in: query
+          schema: { type: string }
+        - name: payment_status
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+    post:
+      operationId: createStudent
+      tags: [students]
+      summary: Create a student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  /students/{id}:
+    get:
+      operationId: getStudent
+      tags: [students]
+      summary: Get a student by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+    patch:
+      operationId: updateStudent
+      tags: [students]
+      summary: Update a student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentUpdate"
+      responses:
+        "200":
+          description: Updated student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+    delete:
+      operationId: deleteStudent
+      tags: [students]
+      summary: Delete a student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /teachers:
+    get:
+      operationId: listTeachers
+      tags: [teachers]
+      summary: List all teachers
+      responses:
+        "200":
+          description: List of teachers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Teacher"
+    post:
+      operationId: createTeacher
+      tags: [teachers]
+      summary: Create a teacher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeacherInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Teacher"
+
+  /teachers/{id}:
+    get:
+      operationId: getTeacher
+      tags: [teachers]
+      summary: Get a teacher by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Teacher
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Teacher"
+    patch:
+      operationId: updateTeacher
+      tags: [teachers]
+      summary: Update a teacher
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeacherUpdate"
+      responses:
+        "200":
+          description: Updated teacher
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Teacher"
+    delete:
+      operationId: deleteTeacher
+      tags: [teachers]
+      summary: Delete a teacher
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /circles:
+    get:
+      operationId: listCircles
+      tags: [circles]
+      summary: List all circles
+      responses:
+        "200":
+          description: List of circles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Circle"
+    post:
+      operationId: createCircle
+      tags: [circles]
+      summary: Create a circle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CircleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Circle"
+
+  /circles/{id}:
+    get:
+      operationId: getCircle
+      tags: [circles]
+      summary: Get a circle by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Circle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Circle"
+    patch:
+      operationId: updateCircle
+      tags: [circles]
+      summary: Update a circle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CircleUpdate"
+      responses:
+        "200":
+          description: Updated circle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Circle"
+    delete:
+      operationId: deleteCircle
+      tags: [circles]
+      summary: Delete a circle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      summary: List all sessions
+      parameters:
+        - name: circle_id
+          in: query
+          schema: { type: string }
+        - name: date
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Session"
+    post:
+      operationId: createSession
+      tags: [sessions]
+      summary: Create a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionInput"
+      responses:
+        "201":
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      tags: [sessions]
+      summary: Get a session by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+    patch:
+      operationId: updateSession
+      tags: [sessions]
+      summary: Update a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionUpdate"
+      responses:
+        "200":
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{id}/records:
+    get:
+      operationId: getSessionRecords
+      tags: [sessions]
+      summary: Get all student records for a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Session student records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionRecord"
+    post:
+      operationId: saveSessionRecords
+      tags: [sessions]
+      summary: Save all student records for a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionRecordBatch"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionRecord"
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [finance]
+      summary: List invoices
+      parameters:
+        - name: month
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: createInvoice
+      tags: [finance]
+      summary: Create a monthly invoice batch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Created invoice batch
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+
+  /invoices/{id}:
+    patch:
+      operationId: updateInvoice
+      tags: [finance]
+      summary: Update invoice status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceUpdate"
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [finance]
+      summary: List operational expenses
+      responses:
+        "200":
+          description: List of expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+    post:
+      operationId: createExpense
+      tags: [finance]
+      summary: Create an expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "201":
+          description: Created expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+
+  /expenses/{id}:
+    patch:
+      operationId: updateExpense
+      tags: [finance]
+      summary: Update an expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "200":
+          description: Updated expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+    delete:
+      operationId: deleteExpense
+      tags: [finance]
+      summary: Delete an expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /finance/summary:
+    get:
+      operationId: getFinanceSummary
+      tags: [finance]
+      summary: Get financial summary (revenue, expenses, profit)
+      parameters:
+        - name: month
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Financial summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceSummary"
+
+  /finance/analytics:
+    get:
+      operationId: getFinanceAnalytics
+      tags: [finance]
+      summary: Get advanced financial analytics
+      parameters:
+        - name: months
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceAnalytics"
+
+  /income:
+    get:
+      operationId: listIncome
+      tags: [finance]
+      summary: List extra income entries
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of income entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncomeEntry"
+    post:
+      operationId: createIncome
+      tags: [finance]
+      summary: Create income entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncomeEntryInput"
+      responses:
+        "201":
+          description: Created income entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeEntry"
+
+  /income/{id}:
+    delete:
+      operationId: deleteIncome
+      tags: [finance]
+      summary: Delete income entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /payroll:
+    get:
+      operationId: listPayroll
+      tags: [finance]
+      summary: List teacher salary records
+      parameters:
+        - name: month
+          in: query
+          schema: { type: string }
+        - name: teacher_id
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Salary records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SalaryRecord"
+    post:
+      operationId: createPayroll
+      tags: [finance]
+      summary: Create salary record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SalaryRecordInput"
+      responses:
+        "201":
+          description: Created salary record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalaryRecord"
+
+  /payroll/{id}:
+    patch:
+      operationId: updatePayroll
+      tags: [finance]
+      summary: Update salary record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SalaryRecordUpdate"
+      responses:
+        "200":
+          description: Updated salary record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalaryRecord"
+    delete:
+      operationId: deletePayroll
+      tags: [finance]
+      summary: Delete salary record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /payroll/calculate:
+    post:
+      operationId: calculatePayroll
+      tags: [finance]
+      summary: Auto-calculate salaries for all teachers for a month
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [month]
+              properties:
+                month: { type: string }
+      responses:
+        "201":
+          description: Calculated salary records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SalaryRecord"
+
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [finance]
+      summary: List all financial transactions
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: month
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List notifications
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: unread
+          in: query
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get student leaderboard ranked by points
+      parameters:
+        - name: month
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /ai/insights:
+    get:
+      operationId: getAiInsights
+      tags: [ai]
+      summary: Get AI-generated insights for the dashboard
+      responses:
+        "200":
+          description: AI insights
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiInsights"
+
+  /ai/analyze-student/{id}:
+    get:
+      operationId: analyzeStudent
+      tags: [ai]
+      summary: AI analysis of a specific student performance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: AI student analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentAnalysis"
+
+  /reports/attendance:
+    get:
+      operationId: getAttendanceReport
+      tags: [reports]
+      summary: Get attendance report
+      parameters:
+        - name: start_date
+          in: query
+          schema: { type: string }
+        - name: end_date
+          in: query
+          schema: { type: string }
+        - name: circle_id
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Attendance report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceReport"
+
+  /reports/memorization:
+    get:
+      operationId: getMemorizationReport
+      tags: [reports]
+      summary: Get memorization progress report
+      parameters:
+        - name: circle_id
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Memorization report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemorizationReport"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    DashboardStats:
+      type: object
+      required: [total_students, total_teachers, total_circles, total_sessions, present_today, absent_today, late_payments, total_revenue, total_expenses, profit]
+      properties:
+        total_students: { type: integer }
+        total_teachers: { type: integer }
+        total_circles: { type: integer }
+        total_sessions: { type: integer }
+        present_today: { type: integer }
+        absent_today: { type: integer }
+        late_students: { type: integer }
+        weak_students: { type: integer }
+        late_payments: { type: integer }
+        total_revenue: { type: number }
+        total_expenses: { type: number }
+        profit: { type: number }
+        recent_sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Session"
+        recent_notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+
+    Student:
+      type: object
+      required: [id, full_name, grade, enrollment_date]
+      properties:
+        id: { type: string }
+        full_name: { type: string }
+        photo_url: { type: ["string", "null"] }
+        age: { type: ["integer", "null"] }
+        birth_date: { type: ["string", "null"] }
+        grade: { type: string }
+        address: { type: ["string", "null"] }
+        governorate: { type: ["string", "null"] }
+        guardian_phone: { type: string }
+        secondary_phone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        teacher_id: { type: ["string", "null"] }
+        teacher_name: { type: ["string", "null"] }
+        circle_id: { type: ["string", "null"] }
+        circle_name: { type: ["string", "null"] }
+        payment_status: { type: string }
+        payment_amount: { type: ["number", "null"] }
+        is_exempt: { type: boolean }
+        current_memorization: { type: ["string", "null"] }
+        current_revision: { type: ["string", "null"] }
+        level: { type: ["string", "null"] }
+        rating: { type: ["integer", "null"] }
+        notes: { type: ["string", "null"] }
+        enrollment_date: { type: string }
+        points: { type: integer }
+        created_at: { type: string }
+        updated_at: { type: string }
+
+    StudentInput:
+      type: object
+      required: [full_name, grade, guardian_phone]
+      properties:
+        full_name: { type: string }
+        photo_url: { type: string }
+        age: { type: integer }
+        birth_date: { type: string }
+        grade: { type: string }
+        address: { type: string }
+        governorate: { type: string }
+        guardian_phone: { type: string }
+        secondary_phone: { type: string }
+        email: { type: string }
+        teacher_id: { type: string }
+        circle_id: { type: string }
+        payment_status: { type: string }
+        payment_amount: { type: number }
+        is_exempt: { type: boolean }
+        current_memorization: { type: string }
+        current_revision: { type: string }
+        level: { type: string }
+        rating: { type: integer }
+        notes: { type: string }
+        enrollment_date: { type: string }
+
+    StudentUpdate:
+      type: object
+      properties:
+        full_name: { type: string }
+        photo_url: { type: string }
+        age: { type: integer }
+        birth_date: { type: string }
+        grade: { type: string }
+        address: { type: string }
+        governorate: { type: string }
+        guardian_phone: { type: string }
+        secondary_phone: { type: string }
+        email: { type: string }
+        teacher_id: { type: string }
+        circle_id: { type: string }
+        payment_status: { type: string }
+        payment_amount: { type: number }
+        is_exempt: { type: boolean }
+        current_memorization: { type: string }
+        current_revision: { type: string }
+        level: { type: string }
+        rating: { type: integer }
+        notes: { type: string }
+
+    Teacher:
+      type: object
+      required: [id, full_name, phone]
+      properties:
+        id: { type: string }
+        full_name: { type: string }
+        photo_url: { type: ["string", "null"] }
+        age: { type: ["integer", "null"] }
+        phone: { type: string }
+        secondary_phone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        salary: { type: ["number", "null"] }
+        hire_date: { type: ["string", "null"] }
+        experience: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        student_count: { type: integer }
+        circle_count: { type: integer }
+        created_at: { type: string }
+        updated_at: { type: string }
+
+    TeacherInput:
+      type: object
+      required: [full_name, phone]
+      properties:
+        full_name: { type: string }
+        photo_url: { type: string }
+        age: { type: integer }
+        phone: { type: string }
+        secondary_phone: { type: string }
+        email: { type: string }
+        address: { type: string }
+        salary: { type: number }
+        hire_date: { type: string }
+        experience: { type: string }
+        notes: { type: string }
+
+    TeacherUpdate:
+      type: object
+      properties:
+        full_name: { type: string }
+        photo_url: { type: string }
+        age: { type: integer }
+        phone: { type: string }
+        secondary_phone: { type: string }
+        email: { type: string }
+        address: { type: string }
+        salary: { type: number }
+        hire_date: { type: string }
+        experience: { type: string }
+        notes: { type: string }
+
+    Circle:
+      type: object
+      required: [id, name, status]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        days: { type: ["string", "null"] }
+        time: { type: ["string", "null"] }
+        teacher_id: { type: ["string", "null"] }
+        teacher_name: { type: ["string", "null"] }
+        status: { type: string }
+        student_count: { type: integer }
+        created_at: { type: string }
+        updated_at: { type: string }
+
+    CircleInput:
+      type: object
+      required: [name, status]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        days: { type: string }
+        time: { type: string }
+        teacher_id: { type: string }
+        status: { type: string }
+
+    CircleUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+        days: { type: string }
+        time: { type: string }
+        teacher_id: { type: string }
+        status: { type: string }
+
+    Session:
+      type: object
+      required: [id, circle_id, date, status]
+      properties:
+        id: { type: string }
+        circle_id: { type: string }
+        circle_name: { type: ["string", "null"] }
+        teacher_id: { type: ["string", "null"] }
+        teacher_name: { type: ["string", "null"] }
+        date: { type: string }
+        day: { type: ["string", "null"] }
+        time: { type: ["string", "null"] }
+        status: { type: string }
+        student_count: { type: integer }
+        present_count: { type: integer }
+        created_at: { type: string }
+
+    SessionInput:
+      type: object
+      required: [circle_id, date]
+      properties:
+        circle_id: { type: string }
+        date: { type: string }
+        day: { type: string }
+        time: { type: string }
+        status: { type: string }
+
+    SessionUpdate:
+      type: object
+      properties:
+        date: { type: string }
+        day: { type: string }
+        time: { type: string }
+        status: { type: string }
+
+    SessionRecord:
+      type: object
+      required: [id, session_id, student_id]
+      properties:
+        id: { type: string }
+        session_id: { type: string }
+        student_id: { type: string }
+        student_name: { type: ["string", "null"] }
+        is_present: { type: boolean }
+        memorization_amount: { type: ["string", "null"] }
+        revision_amount: { type: ["string", "null"] }
+        next_memorization: { type: ["string", "null"] }
+        next_revision: { type: ["string", "null"] }
+        grade: { type: ["integer", "null"] }
+        performance_label: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    SessionRecordBatch:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          items:
+            type: object
+            required: [student_id, is_present]
+            properties:
+              student_id: { type: string }
+              is_present: { type: boolean }
+              memorization_amount: { type: string }
+              revision_amount: { type: string }
+              next_memorization: { type: string }
+              next_revision: { type: string }
+              grade: { type: integer }
+              performance_label: { type: string }
+              notes: { type: string }
+
+    Invoice:
+      type: object
+      required: [id, student_id, month, amount, status]
+      properties:
+        id: { type: string }
+        student_id: { type: string }
+        student_name: { type: ["string", "null"] }
+        month: { type: string }
+        amount: { type: number }
+        status: { type: string }
+        is_exempt: { type: boolean }
+        paid_at: { type: ["string", "null"] }
+        created_at: { type: string }
+
+    InvoiceInput:
+      type: object
+      required: [month]
+      properties:
+        month: { type: string }
+        amount_override: { type: number }
+
+    InvoiceUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+        paid_at: { type: string }
+
+    Expense:
+      type: object
+      required: [id, category, amount, date]
+      properties:
+        id: { type: string }
+        category: { type: string }
+        description: { type: ["string", "null"] }
+        amount: { type: number }
+        date: { type: string }
+        created_at: { type: string }
+
+    ExpenseInput:
+      type: object
+      required: [category, amount, date]
+      properties:
+        category: { type: string }
+        description: { type: string }
+        amount: { type: number }
+        date: { type: string }
+        payment_method: { type: string }
+        linked_to_type: { type: string }
+        linked_to_id: { type: string }
+        notes: { type: string }
+
+    IncomeEntry:
+      type: object
+      required: [id, type, description, amount, date]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        description: { type: string }
+        amount: { type: number }
+        date: { type: string }
+        payment_method: { type: ["string", "null"] }
+        donor_name: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        created_at: { type: string }
+
+    IncomeEntryInput:
+      type: object
+      required: [type, description, amount, date]
+      properties:
+        type: { type: string }
+        description: { type: string }
+        amount: { type: number }
+        date: { type: string }
+        payment_method: { type: string }
+        donor_name: { type: string }
+        notes: { type: string }
+
+    SalaryRecord:
+      type: object
+      required: [id, teacher_id, month, total_amount, status]
+      properties:
+        id: { type: string }
+        teacher_id: { type: string }
+        teacher_name: { type: ["string", "null"] }
+        month: { type: string }
+        base_salary: { type: number }
+        session_count: { type: number }
+        session_rate: { type: number }
+        bonuses: { type: number }
+        deductions: { type: number }
+        total_amount: { type: number }
+        payment_method: { type: ["string", "null"] }
+        status: { type: string }
+        calculation_method: { type: string }
+        notes: { type: ["string", "null"] }
+        paid_at: { type: ["string", "null"] }
+        created_at: { type: string }
+
+    SalaryRecordInput:
+      type: object
+      required: [teacher_id, month, total_amount, calculation_method]
+      properties:
+        teacher_id: { type: string }
+        month: { type: string }
+        base_salary: { type: number }
+        session_count: { type: number }
+        session_rate: { type: number }
+        bonuses: { type: number }
+        deductions: { type: number }
+        total_amount: { type: number }
+        payment_method: { type: string }
+        status: { type: string }
+        calculation_method: { type: string }
+        notes: { type: string }
+
+    SalaryRecordUpdate:
+      type: object
+      properties:
+        base_salary: { type: number }
+        bonuses: { type: number }
+        deductions: { type: number }
+        total_amount: { type: number }
+        payment_method: { type: string }
+        status: { type: string }
+        notes: { type: string }
+        paid_at: { type: string }
+
+    Transaction:
+      type: object
+      required: [id, type, amount, description, date]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        amount: { type: number }
+        description: { type: string }
+        category: { type: ["string", "null"] }
+        date: { type: string }
+        linked_type: { type: ["string", "null"] }
+        linked_id: { type: ["string", "null"] }
+        linked_name: { type: ["string", "null"] }
+        source_table: { type: ["string", "null"] }
+        source_id: { type: ["string", "null"] }
+        created_at: { type: string }
+
+    FinanceAnalytics:
+      type: object
+      required: [monthly_trends, expense_by_category, collection_rate, teacher_performance]
+      properties:
+        monthly_trends:
+          type: array
+          items:
+            type: object
+            required: [month, revenue, expenses, profit]
+            properties:
+              month: { type: string }
+              revenue: { type: number }
+              expenses: { type: number }
+              profit: { type: number }
+              salary_cost: { type: number }
+        expense_by_category:
+          type: array
+          items:
+            type: object
+            required: [category, total]
+            properties:
+              category: { type: string }
+              total: { type: number }
+              count: { type: integer }
+        collection_rate:
+          type: number
+        total_outstanding:
+          type: number
+        teacher_performance:
+          type: array
+          items:
+            type: object
+            required: [teacher_id, teacher_name, salary_cost, session_count]
+            properties:
+              teacher_id: { type: string }
+              teacher_name: { type: string }
+              salary_cost: { type: number }
+              session_count: { type: integer }
+              student_count: { type: integer }
+        income_by_type:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { type: string }
+              total: { type: number }
+
+    FinanceSummary:
+      type: object
+      required: [revenue, expenses, profit]
+      properties:
+        month: { type: ["string", "null"] }
+        revenue: { type: number }
+        expenses: { type: number }
+        profit: { type: number }
+        paid_invoices: { type: integer }
+        unpaid_invoices: { type: integer }
+        exempt_invoices: { type: integer }
+        monthly_breakdown:
+          type: array
+          items:
+            type: object
+            required: [month, revenue, expenses]
+            properties:
+              month: { type: string }
+              revenue: { type: number }
+              expenses: { type: number }
+
+    Notification:
+      type: object
+      required: [id, type, title, message, is_read, created_at]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        message: { type: string }
+        student_id: { type: ["string", "null"] }
+        student_name: { type: ["string", "null"] }
+        is_read: { type: boolean }
+        priority: { type: ["string", "null"] }
+        created_at: { type: string }
+
+    LeaderboardEntry:
+      type: object
+      required: [rank, student_id, student_name, points]
+      properties:
+        rank: { type: integer }
+        student_id: { type: string }
+        student_name: { type: string }
+        photo_url: { type: ["string", "null"] }
+        circle_name: { type: ["string", "null"] }
+        points: { type: integer }
+        attendance_score: { type: number }
+        memorization_score: { type: number }
+        revision_score: { type: number }
+        badge: { type: ["string", "null"] }
+        is_student_of_month: { type: boolean }
+
+    AiInsights:
+      type: object
+      required: [insights, recommendations, generated_at]
+      properties:
+        insights:
+          type: array
+          items:
+            type: object
+            required: [title, description, type]
+            properties:
+              title: { type: string }
+              description: { type: string }
+              type: { type: string }
+              severity: { type: ["string", "null"] }
+        recommendations:
+          type: array
+          items: { type: string }
+        weak_students:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              name: { type: string }
+              issue: { type: string }
+        generated_at: { type: string }
+
+    StudentAnalysis:
+      type: object
+      required: [student_id, summary, strengths, weaknesses, recommendations]
+      properties:
+        student_id: { type: string }
+        student_name: { type: string }
+        summary: { type: string }
+        strengths:
+          type: array
+          items: { type: string }
+        weaknesses:
+          type: array
+          items: { type: string }
+        recommendations:
+          type: array
+          items: { type: string }
+        attendance_rate: { type: number }
+        memorization_progress: { type: string }
+        overall_score: { type: integer }
+
+    AttendanceReport:
+      type: object
+      required: [total_sessions, overall_attendance_rate, students]
+      properties:
+        total_sessions: { type: integer }
+        overall_attendance_rate: { type: number }
+        period: { type: string }
+        students:
+          type: array
+          items:
+            type: object
+            required: [student_id, student_name, present, absent, rate]
+            properties:
+              student_id: { type: string }
+              student_name: { type: string }
+              present: { type: integer }
+              absent: { type: integer }
+              rate: { type: number }
+        by_circle:
+          type: array
+          items:
+            type: object
+            properties:
+              circle_id: { type: string }
+              circle_name: { type: string }
+              rate: { type: number }
+
+    MemorizationReport:
+      type: object
+      required: [total_students, students]
+      properties:
+        total_students: { type: integer }
+        average_memorization_pages: { type: number }
+        students:
+          type: array
+          items:
+            type: object
+            required: [student_id, student_name, total_memorized, total_revised]
+            properties:
+              student_id: { type: string }
+              student_name: { type: string }
+              total_memorized: { type: string }
+              total_revised: { type: string }
+              last_memorized: { type: ["string", "null"] }
+              performance: { type: string }
+
+    DeleteResult:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean }
+        id: { type: string }

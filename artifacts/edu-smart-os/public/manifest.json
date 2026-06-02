@@ -1,0 +1,22 @@
+{
+  "name": "مكتب الفرقان - EDU SMART OS",
+  "short_name": "الفرقان",
+  "description": "نظام إدارة مكتب الفرقان لتحفيظ القرآن الكريم",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1209",
+  "theme_color": "#c9a227",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": []
+}
