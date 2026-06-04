@@ -142,7 +142,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen w-full relative">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 bg-background/95 relative z-10">
-          <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]" />
+          <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('/arabesque.png')]" />
           <div className="p-6 md:p-8 lg:p-10 relative z-20 flex-1 max-w-7xl mx-auto w-full">
             {children}
           </div>

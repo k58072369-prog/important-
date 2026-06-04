@@ -221,6 +221,15 @@ importers:
 
   artifacts/edu-smart-os:
     dependencies:
+      '@fontsource/inter':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/plus-jakarta-sans':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/tajawal':
+        specifier: ^5.2.7
+        version: 5.2.7
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.107.0
@@ -990,6 +999,15 @@ packages:
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
+
+  '@fontsource/inter@5.2.8':
+    resolution: {integrity: sha512-P6r5WnJoKiNVV+zvW2xM13gNdFhAEpQ9dQJHt3naLvfg+LkF2ldgSLiF4T41lf1SQCM9QmkqPTn4TH568IRagg==}
+
+  '@fontsource/plus-jakarta-sans@5.2.8':
+    resolution: {integrity: sha512-P5qE49fqdeD+7DXH1KBxmMPlB17LTz1zvBhFH0tFzfnYTKVJVyb0pR6plh0ZGXxcB+Oayb54FZZw3V42/DawTw==}
+
+  '@fontsource/tajawal@5.2.7':
+    resolution: {integrity: sha512-EzswJ4JoFmYQ7hn7O5Do7Azd1tjzujSEzN+DvTZNcAwZ3usfPvEJ3hTQtYv9VN+mUH4flOi6LedtqCkVUHZs9A==}
 
   '@gerrit0/mini-shiki@3.23.0':
     resolution: {integrity: sha512-bEMORlG0cqdjVyCEuU0cDQbORWX+kYCeo0kV1lbxF5bt4r7SID2l9bqsxJEM0zndaxpOUT7riCyIVEuqq/Ynxg==}
@@ -3579,6 +3597,12 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@floating-ui/utils@0.2.11': {}
+
+  '@fontsource/inter@5.2.8': {}
+
+  '@fontsource/plus-jakarta-sans@5.2.8': {}
+
+  '@fontsource/tajawal@5.2.7': {}
 
   '@gerrit0/mini-shiki@3.23.0':
     dependencies:
