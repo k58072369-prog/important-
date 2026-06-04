@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,8 +7,10 @@ import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { DhikrToast } from "@/components/dhikr-toast";
 import { AudioManager } from "@/components/audio-manager";
+import { SplashScreen } from "@/components/splash-screen";
 import { StoreProvider } from "@/lib/store";
 import { startAutoBackup } from "@/lib/backup";
+import { getSplashSettings } from "@/lib/splash-settings";
 import Dashboard from "@/pages/dashboard";
 import Students from "@/pages/students";
 import Teachers from "@/pages/teachers";
@@ -59,18 +61,30 @@ function AppInit() {
 }
 
 function App() {
+  const splashSettings = getSplashSettings();
+  const [splashDone, setSplashDone] = useState(!splashSettings.enabled);
+
   return (
     <ErrorBoundary>
       <StoreProvider>
         <TooltipProvider>
           <AppInit />
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-          <OfflineIndicator />
-          <DhikrToast />
-          <AudioManager />
+
+          {!splashDone && (
+            <SplashScreen onDone={() => setSplashDone(true)} />
+          )}
+
+          <div
+            className={splashDone ? "block" : "hidden"}
+          >
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+            <Toaster />
+            <OfflineIndicator />
+            <DhikrToast />
+            <AudioManager />
+          </div>
         </TooltipProvider>
       </StoreProvider>
     </ErrorBoundary>
