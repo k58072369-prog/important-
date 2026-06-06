@@ -20,6 +20,8 @@ export interface Student {
   is_exempt: boolean;
   current_memorization?: string;
   current_revision?: string;
+  last_memorization_position?: string;
+  last_revision_position?: string;
   level?: string;
   rating?: number;
   points?: number;
@@ -92,6 +94,7 @@ export interface SessionRecord {
   next_revision?: string;
   grade?: number;
   performance_label?: string;
+  heard_by?: string;
   notes?: string;
   created_at: string;
 }
@@ -373,6 +376,27 @@ class FurqanDB extends Dexie {
       monthly_reports: "id, student_id, month, created_at",
     });
     this.version(4).stores({
+      students: "id, full_name, grade, circle_id, teacher_id, payment_status, is_exempt, deleted_at, created_at",
+      teachers: "id, full_name, phone, deleted_at, created_at",
+      circles: "id, name, teacher_id, status, deleted_at, created_at",
+      sessions: "id, circle_id, date, status, deleted_at, created_at",
+      session_records: "id, session_id, student_id, is_present, created_at",
+      invoices: "id, student_id, month, status, deleted_at, created_at",
+      expenses: "id, category, date, deleted_at, created_at",
+      salary_records: "id, teacher_id, month, status, deleted_at, created_at",
+      notifications: "id, type, is_read, created_at",
+      courses: "id, name, teacher_id, status, deleted_at, created_at",
+      course_students: "id, course_id, student_id, enrolled_at",
+      course_sessions: "id, course_id, date, created_at",
+      course_session_records: "id, course_session_id, student_id, status, created_at",
+      competitions: "id, name, status, deleted_at, created_at",
+      competition_levels: "id, competition_id, name, deleted_at, created_at",
+      competition_enrollments: "id, competition_id, level_id, student_id, enrolled_at",
+      competition_results: "id, enrollment_id, competition_id, level_id, student_id, created_at",
+      monthly_reports: "id, student_id, month, created_at",
+      activity_logs: "id, action, entity_type, created_at",
+    });
+    this.version(5).stores({
       students: "id, full_name, grade, circle_id, teacher_id, payment_status, is_exempt, deleted_at, created_at",
       teachers: "id, full_name, phone, deleted_at, created_at",
       circles: "id, name, teacher_id, status, deleted_at, created_at",

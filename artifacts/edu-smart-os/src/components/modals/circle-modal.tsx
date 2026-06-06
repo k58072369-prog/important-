@@ -6,22 +6,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useTeachers, addCircle, updateCircle, type Circle } from "@/lib/store";
 import { saveDraft, loadDraft, clearDraft, hasDraft } from "@/lib/backup";
 import { RotateCcw } from "lucide-react";
 
-const DAYS_OPTIONS = [
-  "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت",
-  "الأحد - الثلاثاء", "الأحد - الثلاثاء - الخميس",
-  "الاثنين - الأربعاء", "الاثنين - الأربعاء - الجمعة",
-  "يومياً",
-];
+const ALL_DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
 const DRAFT_KEY = "add_circle";
 
 const defaultForm = {
-  name: "", description: "", teacher_id: "", days: "",
+  name: "", description: "", teacher_id: "", selectedDays: [] as string[],
   start_time: "", end_time: "", status: "نشطة",
 };
 
@@ -29,6 +25,15 @@ interface CircleModalProps {
   open: boolean;
   onClose: () => void;
   circle?: Circle | null;
+}
+
+function parseDays(days?: string): string[] {
+  if (!days) return [];
+  return days.split("،").map(d => d.trim()).filter(d => ALL_DAYS.includes(d));
+}
+
+function formatDays(days: string[]): string {
+  return days.join("،");
 }
 
 export function CircleModal({ open, onClose, circle }: CircleModalProps) {
@@ -49,7 +54,7 @@ export function CircleModal({ open, onClose, circle }: CircleModalProps) {
         name: circle.name ?? "",
         description: circle.description ?? "",
         teacher_id: circle.teacher_id ?? "",
-        days: circle.days ?? "",
+        selectedDays: parseDays(circle.days),
         start_time: timeParts[0] ?? "",
         end_time: timeParts[1] ?? "",
         status: circle.status ?? "نشطة",
@@ -66,17 +71,28 @@ export function CircleModal({ open, onClose, circle }: CircleModalProps) {
     saveDraft(DRAFT_KEY, form);
   }, [form, isEdit, open]);
 
-  const set = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
+  const set = (key: string, val: unknown) => setForm(f => ({ ...f, [key]: val }));
+
+  const toggleDay = (day: string) => {
+    setForm(f => {
+      const current = f.selectedDays;
+      const next = current.includes(day)
+        ? current.filter(d => d !== day)
+        : [...current, day];
+      return { ...f, selectedDays: next };
+    });
+  };
 
   const handleSubmit = async () => {
     if (!form.name.trim()) { toast({ title: "اسم الحلقة مطلوب", variant: "destructive" }); return; }
 
     const time = form.start_time && form.end_time ? `${form.start_time} - ${form.end_time}` : form.start_time || undefined;
+    const days = form.selectedDays.length > 0 ? formatDays(form.selectedDays) : undefined;
     const payload = {
       name: form.name,
       description: form.description || undefined,
       teacher_id: form.teacher_id && form.teacher_id !== "none" ? form.teacher_id : undefined,
-      days: form.days || undefined,
+      days,
       time,
       status: form.status,
     };
@@ -137,16 +153,36 @@ export function CircleModal({ open, onClose, circle }: CircleModalProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-full space-y-2">
-            <Label>أيام الحلقة</Label>
-            <Select value={form.days || "none"} onValueChange={v => set("days", v === "none" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="اختر الأيام" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">غير محدد</SelectItem>
-                {DAYS_OPTIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-              </SelectContent>
-            </Select>
+
+          {/* ─── أيام الحلقة (multi-select) ─── */}
+          <div className="col-span-full space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>أيام الحلقة</Label>
+              {form.selectedDays.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {form.selectedDays.map(d => (
+                    <Badge key={d} variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">{d}</Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-muted/30 rounded-lg border">
+              {ALL_DAYS.map(day => (
+                <div key={day} className="flex items-center gap-2 cursor-pointer select-none" onClick={() => toggleDay(day)}>
+                  <Checkbox
+                    id={`day-${day}`}
+                    checked={form.selectedDays.includes(day)}
+                    onCheckedChange={() => toggleDay(day)}
+                  />
+                  <label htmlFor={`day-${day}`} className="text-sm font-medium cursor-pointer">{day}</label>
+                </div>
+              ))}
+            </div>
+            {form.selectedDays.length === 0 && (
+              <p className="text-xs text-muted-foreground">اختر يوماً واحداً أو أكثر من أيام الحلقة</p>
+            )}
           </div>
+
           <div className="space-y-2">
             <Label>وقت البداية</Label>
             <Input type="time" value={form.start_time} onChange={e => set("start_time", e.target.value)} />

@@ -17,25 +17,20 @@ const GRADES = [
   "رابعة ابتدائي", "خامسة ابتدائي", "سادسة ابتدائي",
   "أولى إعدادي", "ثانية إعدادي", "ثالثة إعدادي",
   "أولى ثانوي", "ثانية ثانوي", "ثالثة ثانوي",
-];
-const GOVERNORATES = [
-  "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "البحيرة",
-  "الفيوم", "الغربية", "الإسماعيلية", "المنوفية", "المنيا",
-  "قنا", "سوهاج", "أسيوط", "الأقصر", "أسوان", "البحر الأحمر",
-  "دمياط", "الشرقية", "كفر الشيخ", "مطروح", "بني سويف",
-  "بورسعيد", "السويس", "جنوب سيناء", "شمال سيناء", "الوادي الجديد",
+  "طالب جامعي",
 ];
 const LEVELS = ["ممتاز", "جيد جداً", "جيد", "مقبول", "ضعيف"];
-const PAYMENT_STATUSES = ["مدفوع", "غير مدفوع", "معفي", "متأخر"];
 
 const DRAFT_KEY = "add_student";
 
 const defaultForm = {
   full_name: "", age: "", birth_date: "", grade: "", address: "",
-  governorate: "", guardian_phone: "", secondary_phone: "", email: "",
-  teacher_id: "", circle_id: "", payment_status: "غير مدفوع",
-  payment_amount: "", is_exempt: false, current_memorization: "",
-  current_revision: "", level: "", rating: "", notes: "",
+  guardian_phone: "", secondary_phone: "", email: "",
+  teacher_id: "", circle_id: "",
+  is_exempt: false,
+  current_memorization: "", current_revision: "",
+  last_memorization_position: "", last_revision_position: "",
+  level: "", rating: "", notes: "",
   enrollment_date: new Date().toISOString().split("T")[0],
 };
 
@@ -55,7 +50,6 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
 
   const [form, setForm] = useState({ ...defaultForm });
 
-  // Load or restore form state on open
   useEffect(() => {
     if (!open) return;
     if (student) {
@@ -66,17 +60,16 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
         birth_date: student.birth_date ?? "",
         grade: student.grade ?? "",
         address: student.address ?? "",
-        governorate: student.governorate ?? "",
         guardian_phone: student.guardian_phone ?? "",
         secondary_phone: student.secondary_phone ?? "",
         email: student.email ?? "",
         teacher_id: student.teacher_id ?? "",
         circle_id: student.circle_id ?? "",
-        payment_status: student.payment_status ?? "غير مدفوع",
-        payment_amount: student.payment_amount?.toString() ?? "",
         is_exempt: student.is_exempt ?? false,
         current_memorization: student.current_memorization ?? "",
         current_revision: student.current_revision ?? "",
+        last_memorization_position: student.last_memorization_position ?? "",
+        last_revision_position: student.last_revision_position ?? "",
         level: student.level ?? "",
         rating: student.rating?.toString() ?? "",
         notes: student.notes ?? "",
@@ -89,7 +82,6 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
     }
   }, [student, open]);
 
-  // Auto-save draft on every form change (add mode only)
   useEffect(() => {
     if (isEdit || skipDraftRef.current || !open) return;
     saveDraft(DRAFT_KEY, form);
@@ -108,17 +100,18 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
       birth_date: form.birth_date || undefined,
       grade: form.grade,
       address: form.address || undefined,
-      governorate: form.governorate || undefined,
       guardian_phone: form.guardian_phone,
       secondary_phone: form.secondary_phone || undefined,
       email: form.email || undefined,
       teacher_id: form.teacher_id && form.teacher_id !== "none" ? form.teacher_id : undefined,
       circle_id: form.circle_id && form.circle_id !== "none" ? form.circle_id : undefined,
-      payment_status: form.payment_status,
-      payment_amount: form.payment_amount ? parseFloat(form.payment_amount) : undefined,
+      payment_status: student?.payment_status ?? "غير مدفوع",
+      payment_amount: student?.payment_amount,
       is_exempt: form.is_exempt,
       current_memorization: form.current_memorization || undefined,
       current_revision: form.current_revision || undefined,
+      last_memorization_position: form.last_memorization_position || undefined,
+      last_revision_position: form.last_revision_position || undefined,
       level: form.level || undefined,
       rating: form.rating ? parseInt(form.rating) : undefined,
       notes: form.notes || undefined,
@@ -163,17 +156,13 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          {/* ─── البيانات الأساسية ─── */}
+          <div className="col-span-full">
+            <p className="text-sm font-semibold text-secondary mb-3 pb-1 border-b">البيانات الأساسية</p>
+          </div>
           <div className="space-y-2">
             <Label>الاسم الكامل <span className="text-destructive">*</span></Label>
             <Input value={form.full_name} onChange={e => set("full_name", e.target.value)} placeholder="أدخل الاسم الكامل" />
-          </div>
-          <div className="space-y-2">
-            <Label>العمر</Label>
-            <Input type="number" value={form.age} onChange={e => set("age", e.target.value)} placeholder="العمر بالسنوات" min={5} max={25} />
-          </div>
-          <div className="space-y-2">
-            <Label>تاريخ الميلاد</Label>
-            <Input type="date" value={form.birth_date} onChange={e => set("birth_date", e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>الصف الدراسي <span className="text-destructive">*</span></Label>
@@ -181,6 +170,14 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
               <SelectTrigger><SelectValue placeholder="اختر الصف" /></SelectTrigger>
               <SelectContent>{GRADES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>العمر</Label>
+            <Input type="number" value={form.age} onChange={e => set("age", e.target.value)} placeholder="العمر بالسنوات" min={5} max={30} />
+          </div>
+          <div className="space-y-2">
+            <Label>تاريخ الميلاد</Label>
+            <Input type="date" value={form.birth_date} onChange={e => set("birth_date", e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>رقم ولي الأمر <span className="text-destructive">*</span></Label>
@@ -195,15 +192,17 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
             <Input type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="example@email.com" dir="ltr" />
           </div>
           <div className="space-y-2">
-            <Label>المحافظة</Label>
-            <Select value={form.governorate} onValueChange={v => set("governorate", v)}>
-              <SelectTrigger><SelectValue placeholder="اختر المحافظة" /></SelectTrigger>
-              <SelectContent>{GOVERNORATES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
-            </Select>
+            <Label>تاريخ التسجيل</Label>
+            <Input type="date" value={form.enrollment_date} onChange={e => set("enrollment_date", e.target.value)} />
           </div>
           <div className="col-span-full space-y-2">
             <Label>العنوان</Label>
             <Input value={form.address} onChange={e => set("address", e.target.value)} placeholder="العنوان التفصيلي" />
+          </div>
+
+          {/* ─── التعيين ─── */}
+          <div className="col-span-full border-t pt-4">
+            <p className="text-sm font-semibold text-secondary mb-3">الحلقة والمعلم</p>
           </div>
           <div className="space-y-2">
             <Label>الحلقة</Label>
@@ -226,27 +225,9 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
             </Select>
           </div>
 
+          {/* ─── بيانات الحفظ ─── */}
           <div className="col-span-full border-t pt-4">
-            <p className="text-sm font-semibold text-secondary mb-3">الشؤون المالية</p>
-          </div>
-          <div className="space-y-2">
-            <Label>حالة الرسوم</Label>
-            <Select value={form.payment_status} onValueChange={v => set("payment_status", v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{PAYMENT_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>قيمة الرسوم (ج.م)</Label>
-            <Input type="number" value={form.payment_amount} onChange={e => set("payment_amount", e.target.value)} placeholder="0" min={0} />
-          </div>
-          <div className="flex items-center gap-3 pt-2">
-            <Switch checked={form.is_exempt} onCheckedChange={v => set("is_exempt", v)} id="is_exempt" />
-            <Label htmlFor="is_exempt">الطالب معفي من الرسوم</Label>
-          </div>
-
-          <div className="col-span-full border-t pt-4">
-            <p className="text-sm font-semibold text-secondary mb-3">بيانات الحفظ والمستوى</p>
+            <p className="text-sm font-semibold text-secondary mb-3">بيانات الحفظ والمراجعة</p>
           </div>
           <div className="space-y-2">
             <Label>الحفظ الحالي</Label>
@@ -255,6 +236,19 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
           <div className="space-y-2">
             <Label>المراجعة الحالية</Label>
             <Input value={form.current_revision} onChange={e => set("current_revision", e.target.value)} placeholder="مثال: الجزء الأول" />
+          </div>
+          <div className="space-y-2">
+            <Label>آخر موضع حفظ</Label>
+            <Input value={form.last_memorization_position} onChange={e => set("last_memorization_position", e.target.value)} placeholder="مثال: سورة آل عمران - الآية 10" />
+          </div>
+          <div className="space-y-2">
+            <Label>آخر موضع مراجعة</Label>
+            <Input value={form.last_revision_position} onChange={e => set("last_revision_position", e.target.value)} placeholder="مثال: الجزء الثاني - الربع الأول" />
+          </div>
+
+          {/* ─── المستوى والتقييم ─── */}
+          <div className="col-span-full border-t pt-4">
+            <p className="text-sm font-semibold text-secondary mb-3">المستوى والتقييم</p>
           </div>
           <div className="space-y-2">
             <Label>مستوى الطالب</Label>
@@ -270,13 +264,22 @@ export function StudentModal({ open, onClose, student }: StudentModalProps) {
             <Label>التقييم (1-10)</Label>
             <Input type="number" value={form.rating} onChange={e => set("rating", e.target.value)} placeholder="0" min={1} max={10} />
           </div>
-          <div className="space-y-2">
-            <Label>تاريخ التسجيل</Label>
-            <Input type="date" value={form.enrollment_date} onChange={e => set("enrollment_date", e.target.value)} />
+
+          {/* ─── الإعفاء ─── */}
+          <div className="col-span-full border-t pt-4">
+            <p className="text-sm font-semibold text-secondary mb-3">الإعفاء من الرسوم</p>
           </div>
-          <div className="col-span-full space-y-2">
-            <Label>ملاحظات</Label>
-            <Textarea value={form.notes} onChange={e => set("notes", e.target.value)} placeholder="أي ملاحظات إضافية..." rows={3} />
+          <div className="flex items-center gap-3 pt-1">
+            <Switch checked={form.is_exempt} onCheckedChange={v => set("is_exempt", v)} id="is_exempt" />
+            <Label htmlFor="is_exempt">الطالب معفي من رسوم الاشتراك</Label>
+          </div>
+
+          {/* ─── ملاحظات ─── */}
+          <div className="col-span-full border-t pt-4">
+            <div className="space-y-2">
+              <Label>ملاحظات</Label>
+              <Textarea value={form.notes} onChange={e => set("notes", e.target.value)} placeholder="أي ملاحظات إضافية..." rows={3} />
+            </div>
           </div>
         </div>
 

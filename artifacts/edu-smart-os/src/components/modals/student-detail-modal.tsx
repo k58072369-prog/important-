@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Phone, Mail, MapPin, BookOpen } from "lucide-react";
+import { Edit, Phone, Mail, MapPin, BookOpen, BookMarked } from "lucide-react";
 import type { Student } from "@/lib/store";
 
 interface StudentDetailModalProps {
@@ -13,11 +13,6 @@ interface StudentDetailModalProps {
 
 export function StudentDetailModal({ open, onClose, student, onEdit }: StudentDetailModalProps) {
   if (!student) return null;
-
-  const paymentColor =
-    student.payment_status === "مدفوع" ? "text-green-600 border-green-600" :
-    student.payment_status === "غير مدفوع" ? "text-destructive border-destructive" :
-    "text-muted-foreground";
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -33,11 +28,12 @@ export function StudentDetailModal({ open, onClose, student, onEdit }: StudentDe
               <p className="text-muted-foreground mt-1">{student.grade}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Badge variant="outline" className={paymentColor}>{student.payment_status}</Badge>
               {student.level && <Badge className="bg-accent/20 text-accent border-accent">{student.level}</Badge>}
+              {student.is_exempt && <Badge variant="outline" className="text-blue-600 border-blue-400 bg-blue-50">معفي من الرسوم</Badge>}
             </div>
           </div>
 
+          {/* بيانات التواصل */}
           <div className="grid grid-cols-2 gap-3 bg-muted/30 rounded-xl p-4">
             <div className="flex items-center gap-2 text-sm">
               <Phone className="h-4 w-4 text-primary" />
@@ -55,14 +51,15 @@ export function StudentDetailModal({ open, onClose, student, onEdit }: StudentDe
                 <span dir="ltr">{student.email}</span>
               </div>
             )}
-            {(student.address || student.governorate) && (
+            {student.address && (
               <div className="flex items-center gap-2 text-sm col-span-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                <span>{[student.address, student.governorate].filter(Boolean).join(" - ")}</span>
+                <span>{student.address}</span>
               </div>
             )}
           </div>
 
+          {/* الحلقة والمعلم */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-primary/5 rounded-lg p-3 text-center border border-primary/10">
               <div className="text-xs text-muted-foreground mb-1">الحلقة</div>
@@ -82,7 +79,8 @@ export function StudentDetailModal({ open, onClose, student, onEdit }: StudentDe
             </div>
           </div>
 
-          {(student.current_memorization || student.current_revision) && (
+          {/* بيانات الحفظ والمراجعة */}
+          {(student.current_memorization || student.current_revision || student.last_memorization_position || student.last_revision_position) && (
             <div className="space-y-2">
               <h3 className="font-semibold text-secondary flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-primary" />
@@ -101,21 +99,27 @@ export function StudentDetailModal({ open, onClose, student, onEdit }: StudentDe
                     <span className="font-medium">{student.current_revision}</span>
                   </div>
                 )}
+                {student.last_memorization_position && (
+                  <div className="flex justify-between border-t pt-2 mt-1">
+                    <span className="text-muted-foreground">آخر موضع حفظ</span>
+                    <span className="font-medium text-primary">{student.last_memorization_position}</span>
+                  </div>
+                )}
+                {student.last_revision_position && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">آخر موضع مراجعة</span>
+                    <span className="font-medium text-primary">{student.last_revision_position}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
+          {/* بيانات إضافية */}
           <div className="grid grid-cols-2 gap-3 text-sm bg-muted/20 rounded-lg p-3">
-            <div>
-              <span className="text-muted-foreground">قيمة الرسوم: </span>
-              <span className="font-semibold">{student.payment_amount ? `${student.payment_amount} ج.م` : "—"}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">معفي: </span>
-              <span className={student.is_exempt ? "text-green-600 font-semibold" : ""}>{student.is_exempt ? "نعم" : "لا"}</span>
-            </div>
             {student.age && <div><span className="text-muted-foreground">العمر: </span><span>{student.age} سنة</span></div>}
             {student.birth_date && <div><span className="text-muted-foreground">الميلاد: </span><span dir="ltr">{student.birth_date}</span></div>}
+            {student.enrollment_date && <div><span className="text-muted-foreground">تاريخ التسجيل: </span><span dir="ltr">{student.enrollment_date}</span></div>}
           </div>
 
           {student.notes && (

@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, Clock, CheckCircle, XCircle, BookOpen } from "lucide-react";
+import { Users, Calendar, Clock, CheckCircle, XCircle, BookOpen, Mic } from "lucide-react";
 import { useSessionRecords, useSessions } from "@/lib/store";
 
 interface SessionDetailModalProps {
@@ -21,7 +21,7 @@ export function SessionDetailModal({ open, sessionId, onClose }: SessionDetailMo
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-secondary">تفاصيل الحصة</DialogTitle>
         </DialogHeader>
@@ -101,6 +101,7 @@ export function SessionDetailModal({ open, sessionId, onClose }: SessionDetailMo
                         <th className="px-3 py-2">الحفظ</th>
                         <th className="px-3 py-2">المراجعة</th>
                         <th className="px-3 py-2">الحفظ القادم</th>
+                        <th className="px-3 py-2">سمع عند</th>
                         <th className="px-3 py-2">الدرجة</th>
                         <th className="px-3 py-2 rounded-tl-lg">التقييم</th>
                       </tr>
@@ -119,6 +120,14 @@ export function SessionDetailModal({ open, sessionId, onClose }: SessionDetailMo
                           <td className="px-3 py-2 text-muted-foreground">{record.memorization_amount || "—"}</td>
                           <td className="px-3 py-2 text-muted-foreground">{record.revision_amount || "—"}</td>
                           <td className="px-3 py-2 text-muted-foreground">{record.next_memorization || "—"}</td>
+                          <td className="px-3 py-2">
+                            {record.heard_by ? (
+                              <span className="flex items-center gap-1 text-blue-600">
+                                <Mic className="h-3 w-3" />
+                                {record.heard_by}
+                              </span>
+                            ) : "—"}
+                          </td>
                           <td className="px-3 py-2">
                             {record.grade != null ? (
                               <span className={`font-semibold ${record.grade >= 80 ? "text-green-600" : record.grade >= 60 ? "text-amber-600" : "text-destructive"}`}>

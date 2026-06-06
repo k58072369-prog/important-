@@ -11,6 +11,7 @@ import { useCircles, useStudents, addSession, saveSessionRecords } from "@/lib/s
 
 const DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const PERFORMANCE_LABELS = ["ممتاز", "جيد جداً", "جيد", "مقبول", "ضعيف"];
+const HEARD_BY_OPTIONS = ["المعلم", "المحفظ", "المشرف"];
 
 interface SessionModalProps {
   open: boolean;
@@ -27,6 +28,7 @@ interface StudentRecord {
   next_revision: string;
   grade: string;
   performance_label: string;
+  heard_by: string;
   notes: string;
 }
 
@@ -66,6 +68,7 @@ export function SessionModal({ open, onClose }: SessionModalProps) {
         next_revision: "",
         grade: "",
         performance_label: "",
+        heard_by: "",
         notes: "",
       })));
     }
@@ -112,6 +115,7 @@ export function SessionModal({ open, onClose }: SessionModalProps) {
         next_revision: r.next_revision || undefined,
         grade: r.grade ? parseInt(r.grade) : undefined,
         performance_label: r.performance_label || undefined,
+        heard_by: r.heard_by || undefined,
         notes: r.notes || undefined,
       })));
       toast({ title: "تم حفظ الحصة وسجلات الحضور بنجاح" });
@@ -236,6 +240,20 @@ export function SessionModal({ open, onClose }: SessionModalProps) {
                               {PERFORMANCE_LABELS.map(l => <SelectItem key={l} value={l} className="text-sm">{l}</SelectItem>)}
                             </SelectContent>
                           </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">سُمع عند</Label>
+                          <Select value={record.heard_by || "none"} onValueChange={v => setRecord(idx, "heard_by", v === "none" ? "" : v)}>
+                            <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="سمع عند..." /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">—</SelectItem>
+                              {HEARD_BY_OPTIONS.map(o => <SelectItem key={o} value={o} className="text-sm">{o}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1 col-span-2">
+                          <Label className="text-xs">ملاحظات</Label>
+                          <Input value={record.notes} onChange={e => setRecord(idx, "notes", e.target.value)} placeholder="أي ملاحظات..." className="h-8 text-sm" />
                         </div>
                       </div>
                     )}

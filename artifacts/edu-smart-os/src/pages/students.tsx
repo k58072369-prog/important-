@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Trash2, Edit, Eye, Users } from "lucide-react";
+import { Plus, Search, Trash2, Edit, Eye, Users, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { StudentModal } from "@/components/modals/student-modal";
 import { StudentDetailModal } from "@/components/modals/student-detail-modal";
@@ -31,11 +31,14 @@ export default function Students() {
     }
   };
 
-  const paymentColor = (status: string) =>
-    status === "مدفوع" ? "text-green-600 border-green-600 bg-green-50" :
-    status === "غير مدفوع" ? "text-destructive border-destructive bg-destructive/5" :
-    status === "معفي" ? "text-blue-600 border-blue-400 bg-blue-50" :
-    "text-amber-600 border-amber-400 bg-amber-50";
+  const levelColor = (level?: string) => {
+    if (level === "ممتاز") return "text-green-600 border-green-600 bg-green-50";
+    if (level === "جيد جداً") return "text-emerald-600 border-emerald-600 bg-emerald-50";
+    if (level === "جيد") return "text-blue-600 border-blue-400 bg-blue-50";
+    if (level === "مقبول") return "text-amber-600 border-amber-400 bg-amber-50";
+    if (level === "ضعيف") return "text-destructive border-destructive bg-destructive/5";
+    return "text-muted-foreground";
+  };
 
   return (
     <div className="space-y-6">
@@ -53,9 +56,9 @@ export default function Students() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "إجمالي الطلاب", value: students.length, color: "text-primary" },
-          { label: "مدفوعون", value: students.filter(s => s.payment_status === "مدفوع").length, color: "text-green-600" },
-          { label: "غير مدفوعين", value: students.filter(s => s.payment_status === "غير مدفوع").length, color: "text-destructive" },
+          { label: "ممتاز", value: students.filter(s => s.level === "ممتاز").length, color: "text-green-600" },
           { label: "معفيون", value: students.filter(s => s.is_exempt).length, color: "text-blue-600" },
+          { label: "بدون حلقة", value: students.filter(s => !s.circle_id).length, color: "text-amber-600" },
         ].map((stat, i) => (
           <Card key={i} className="border-gold-500/20">
             <CardContent className="pt-4 pb-3">
@@ -80,62 +83,57 @@ export default function Students() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-6 space-y-3">{[1,2,3,4].map(i => <Skeleton key={i} className="h-14 w-full" />)}</div>
-          ) : !students.length ? (
+            <div className="p-4 space-y-3">
+              {[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+            </div>
+          ) : students.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="text-lg">{search ? "لا توجد نتائج" : "لا يوجد طلاب"}</p>
-              <p className="text-sm mt-1">{search ? "جرب تغيير كلمة البحث" : "اضغط على \"إضافة طالب\" للبدء"}</p>
+              <p className="font-medium">{search ? "لا توجد نتائج مطابقة" : "لا يوجد طلاب بعد"}</p>
+              {!search && <p className="text-sm mt-1">انقر على "إضافة طالب" للبدء</p>}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-right">
-                <thead className="text-muted-foreground bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 rounded-tr-lg">الاسم</th>
-                    <th className="px-4 py-3">الصف</th>
-                    <th className="px-4 py-3">الحلقة</th>
-                    <th className="px-4 py-3">المعلم</th>
-                    <th className="px-4 py-3">رقم الهاتف</th>
-                    <th className="px-4 py-3">حالة الدفع</th>
-                    <th className="px-4 py-3 rounded-tl-lg text-left">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map(student => (
-                    <tr key={student.id} className="border-b border-muted/60 hover:bg-muted/20 transition-colors">
-                      <td className="px-4 py-3 font-medium text-secondary">{student.full_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{student.grade || "—"}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{student.circle_name || "—"}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{student.teacher_name || "—"}</td>
-                      <td className="px-4 py-3 text-muted-foreground" dir="ltr">{student.guardian_phone || "—"}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant="outline" className={`text-xs ${paymentColor(student.payment_status)}`}>
-                          {student.payment_status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-left">
-                        <div className="flex items-center gap-1 justify-end">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" title="عرض" onClick={() => setDetailStudent(student)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" title="تعديل" onClick={() => setEditStudent(student)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost" size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            title="حذف"
-                            onClick={() => setDeleteTarget({ id: student.id, name: student.full_name, relatedCount: 0 })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="divide-y divide-muted/40">
+              {students.map(student => (
+                <div key={student.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors group">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="text-primary font-bold text-sm">{student.full_name.charAt(0)}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-secondary truncate">{student.full_name}</p>
+                      {student.level && (
+                        <Badge variant="outline" className={`text-xs ${levelColor(student.level)}`}>{student.level}</Badge>
+                      )}
+                      {student.is_exempt && (
+                        <Badge variant="outline" className="text-xs text-blue-600 border-blue-400 bg-blue-50">معفي</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                      <span>{student.grade}</span>
+                      {student.circle_name && <span>• {student.circle_name}</span>}
+                      {student.teacher_name && <span>• {student.teacher_name}</span>}
+                      {student.current_memorization && (
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="h-3 w-3 text-primary" />
+                          {student.current_memorization}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary" onClick={() => setDetailStudent(student)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary" onClick={() => setEditStudent(student)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => setDeleteTarget({ id: student.id, name: student.full_name, relatedCount: 0 })}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
@@ -143,16 +141,20 @@ export default function Students() {
 
       <StudentModal open={addOpen} onClose={() => setAddOpen(false)} />
       <StudentModal open={!!editStudent} onClose={() => setEditStudent(null)} student={editStudent} />
-      <StudentDetailModal open={!!detailStudent} onClose={() => setDetailStudent(null)} student={detailStudent} />
-
+      <StudentDetailModal
+        open={!!detailStudent}
+        onClose={() => setDetailStudent(null)}
+        student={detailStudent}
+        onEdit={() => { setEditStudent(detailStudent); setDetailStudent(null); }}
+      />
       <SafeDeleteDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
-        itemName={deleteTarget?.name ?? ""}
-        itemType="طالب"
-        requireTyping
-        impact="سيتم نقل الطالب إلى سلة المحذوفات مع الاحتفاظ بجميع بياناته وفواتيره. يمكن استعادته لاحقاً."
+        title="حذف الطالب"
+        description={`هل أنت متأكد من نقل الطالب "${deleteTarget?.name}" إلى سلة المحذوفات؟`}
+        relatedCount={deleteTarget?.relatedCount ?? 0}
+        relatedLabel="سجل مرتبط"
       />
     </div>
   );

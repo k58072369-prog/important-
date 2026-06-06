@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { HelpCircle, MessageCircle, Send, PhoneIcon, PlayCircle, Upload, Trash2, RotateCcw } from "lucide-react";
+import { HelpCircle, MessageCircle, PhoneIcon, PlayCircle, Upload, Trash2, RotateCcw } from "lucide-react";
 import { useState, useRef } from "react";
 import { getSplashSettings, saveSplashSettings, clearVideoCache, type SplashSettings } from "@/lib/splash-settings";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Help() {
-  const [query, setQuery] = useState("");
   const { toast } = useToast();
 
   const [splashSettings, setSplashSettings] = useState<SplashSettings>(getSplashSettings);
@@ -72,7 +71,23 @@ export default function Help() {
     {
       q: "كيف يمكنني إصدار فاتورة شهرية للطالب؟",
       a: "من صفحة 'الشؤون المالية'، قسم 'الاشتراكات والفواتير'، انقر على 'إصدار فاتورة' وحدد الطالب والشهر والمبلغ المطلوب."
-    }
+    },
+    {
+      q: "كيف أختار عدة أيام للحلقة؟",
+      a: "عند إنشاء أو تعديل الحلقة، ستجد قسم 'أيام الحلقة' يتيح اختيار أكثر من يوم عبر خانات الاختيار. يمكنك تحديد أي مجموعة من أيام الأسبوع."
+    },
+    {
+      q: "كيف أسجّل حضور جلسة اختبار المسابقة؟",
+      a: "من صفحة 'المسابقات'، افتح المسابقة واختر المستوى، ثم انقر على 'جلسات الاختبار'. أنشئ جلسة جديدة وسيتم جلب المشاركين تلقائياً لتسجيل الحضور والدرجات."
+    },
+    {
+      q: "هل يعمل النظام بدون إنترنت؟",
+      a: "نعم. النظام يعمل بالكامل بدون إنترنت، جميع البيانات محفوظة محلياً في المتصفح (IndexedDB). يمكنك استخدام جميع الميزات في أي وقت."
+    },
+    {
+      q: "كيف أعمل نسخة احتياطية للبيانات؟",
+      a: "من أسفل القائمة الجانبية، انقر على 'النسخ الاحتياطية'. يمكنك إنشاء نسخة يدوية أو تفعيل النسخ التلقائي، والاستعادة منها في أي وقت."
+    },
   ];
 
   return (
@@ -83,7 +98,7 @@ export default function Help() {
         </div>
         <h1 className="text-4xl font-bold text-secondary">مركز المساعدة والدعم</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          نحن هنا لمساعدتك في استخدام نظام EDU SMART OS بكل سهولة وفعالية.
+          نحن هنا لمساعدتك في استخدام نظام مكتب الفرقان لتحفيظ القرآن الكريم بكل سهولة وفعالية.
         </p>
       </div>
 
@@ -100,7 +115,6 @@ export default function Help() {
             </CardHeader>
             <CardContent className="space-y-6">
 
-              {/* Enable / Disable */}
               <div className="flex items-center justify-between p-4 bg-card rounded-xl border">
                 <div>
                   <p className="font-semibold text-sm">تفعيل الشاشة الافتتاحية</p>
@@ -112,7 +126,6 @@ export default function Help() {
                 />
               </div>
 
-              {/* Auto-play */}
               <div className="flex items-center justify-between p-4 bg-card rounded-xl border">
                 <div>
                   <p className="font-semibold text-sm">تشغيل الفيديو تلقائياً</p>
@@ -124,7 +137,6 @@ export default function Help() {
                 />
               </div>
 
-              {/* Skip button text */}
               <div className="space-y-2">
                 <Label htmlFor="skip-text" className="font-semibold text-sm">نص زر التخطي</Label>
                 <Input
@@ -137,7 +149,6 @@ export default function Help() {
                 <p className="text-xs text-muted-foreground">النص الذي يظهر على زر التخطي في الشاشة الافتتاحية</p>
               </div>
 
-              {/* Upload new video */}
               <div className="space-y-3">
                 <Label className="font-semibold text-sm">استبدال الفيديو الافتتاحي</Label>
                 <div className="flex items-center gap-3">
@@ -171,7 +182,6 @@ export default function Help() {
                 </p>
               </div>
 
-              {/* Preview / Test */}
               <div className="pt-2 border-t">
                 <Button
                   onClick={() => {
@@ -208,35 +218,6 @@ export default function Help() {
               </Accordion>
             </CardContent>
           </Card>
-
-          <Card className="border-gold-500/20 bg-muted/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl text-secondary">
-                <MessageCircle className="h-5 w-5 text-accent" />
-                المساعد الذكي
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-card rounded-xl border p-4 h-[300px] flex flex-col">
-                <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                  <div className="bg-muted p-3 rounded-lg rounded-tr-none w-[80%] text-sm">
-                    مرحباً! أنا المساعد الذكي للنظام. كيف يمكنني مساعدتك اليوم؟
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="اكتب سؤالك هنا..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8">
-                    <Send className="h-4 w-4 rtl:rotate-180" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-6">
@@ -265,6 +246,26 @@ export default function Help() {
                 <div className="text-lg font-bold text-primary flex items-center justify-center gap-2" dir="ltr">
                   <PhoneIcon className="h-4 w-4" />
                   +20 112 741 6995
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-5 space-y-3">
+              <h3 className="font-bold text-secondary">معلومات النظام</h3>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>وضع التشغيل</span>
+                  <span className="text-green-600 font-semibold">بدون إنترنت ✓</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>التخزين</span>
+                  <span className="font-medium">محلي (IndexedDB)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>النسخ الاحتياطي</span>
+                  <span className="font-medium">تلقائي كل 6 ساعات</span>
                 </div>
               </div>
             </CardContent>
