@@ -11,7 +11,7 @@ import { useCircles, useStudents, addSession, saveSessionRecords } from "@/lib/s
 
 const DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const PERFORMANCE_LABELS = ["ممتاز", "جيد جداً", "جيد", "مقبول", "ضعيف"];
-const HEARD_BY_OPTIONS = ["المعلم", "المحفظ", "المشرف"];
+const HEARD_BY_OPTIONS = ["المعلم", "المحفظ", "المشرف", "كتابة يدوية..."];
 
 interface SessionModalProps {
   open: boolean;
@@ -49,6 +49,7 @@ export function SessionModal({ open, onClose }: SessionModalProps) {
     status: "مكتملة",
   });
   const [records, setRecords] = useState<StudentRecord[]>([]);
+  const [heardByCustom, setHeardByCustom] = useState<Record<number, string>>({});
   const [createdSessionId, setCreatedSessionId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -243,13 +244,32 @@ export function SessionModal({ open, onClose }: SessionModalProps) {
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">سُمع عند</Label>
-                          <Select value={record.heard_by || "none"} onValueChange={v => setRecord(idx, "heard_by", v === "none" ? "" : v)}>
+                          <Select
+                            value={HEARD_BY_OPTIONS.slice(0, 3).includes(record.heard_by) ? record.heard_by : record.heard_by ? "كتابة يدوية..." : "none"}
+                            onValueChange={v => {
+                              if (v === "none") { setRecord(idx, "heard_by", ""); setHeardByCustom(c => ({ ...c, [idx]: "" })); }
+                              else if (v === "كتابة يدوية...") { setRecord(idx, "heard_by", heardByCustom[idx] || ""); }
+                              else { setRecord(idx, "heard_by", v); setHeardByCustom(c => ({ ...c, [idx]: "" })); }
+                            }}
+                          >
                             <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="سمع عند..." /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">—</SelectItem>
                               {HEARD_BY_OPTIONS.map(o => <SelectItem key={o} value={o} className="text-sm">{o}</SelectItem>)}
                             </SelectContent>
                           </Select>
+                          {(!HEARD_BY_OPTIONS.slice(0, 3).includes(record.heard_by) && record.heard_by) || (HEARD_BY_OPTIONS.slice(0, 3).includes(record.heard_by) ? false : (heardByCustom[idx] !== undefined)) ? (
+                            <Input
+                              value={heardByCustom[idx] ?? record.heard_by}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setHeardByCustom(c => ({ ...c, [idx]: val }));
+                                setRecord(idx, "heard_by", val);
+                              }}
+                              placeholder="اكتب الاسم يدوياً..."
+                              className="h-8 text-sm mt-1"
+                            />
+                          ) : null}
                         </div>
                         <div className="space-y-1 col-span-2">
                           <Label className="text-xs">ملاحظات</Label>

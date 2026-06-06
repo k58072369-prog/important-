@@ -3,9 +3,10 @@ import { useTeachers, deleteTeacher, type Teacher } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Edit, GraduationCap, Phone, Users, CircleDot, Banknote } from "lucide-react";
+import { Plus, Trash2, Edit, GraduationCap, Phone, Users, CircleDot, Banknote, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherModal } from "@/components/modals/teacher-modal";
+import { TeacherDetailModal } from "@/components/modals/teacher-detail-modal";
 import { SafeDeleteDialog } from "@/components/safe-delete-dialog";
 
 export default function Teachers() {
@@ -14,6 +15,7 @@ export default function Teachers() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [editTeacher, setEditTeacher] = useState<Teacher | null>(null);
+  const [viewTeacher, setViewTeacher] = useState<Teacher | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; circleCount: number; studentCount: number } | null>(null);
 
   const handleDeleteConfirm = async () => {
@@ -90,6 +92,10 @@ export default function Teachers() {
                   </div>
                 )}
                 <div className="flex justify-end gap-2 pt-3 border-t border-muted/50">
+                  <Button variant="outline" size="sm" className="text-accent hover:text-accent hover:bg-accent/10" onClick={() => setViewTeacher(teacher)}>
+                    <Eye className="h-4 w-4 ml-1" />
+                    الملف
+                  </Button>
                   <Button variant="outline" size="sm" className="text-primary hover:text-primary hover:bg-primary/10" onClick={() => setEditTeacher(teacher)}>
                     <Edit className="h-4 w-4 ml-1" />
                     تعديل
@@ -111,6 +117,12 @@ export default function Teachers() {
 
       <TeacherModal open={addOpen} onClose={() => setAddOpen(false)} />
       <TeacherModal open={!!editTeacher} onClose={() => setEditTeacher(null)} teacher={editTeacher} />
+      <TeacherDetailModal
+        open={!!viewTeacher}
+        onClose={() => setViewTeacher(null)}
+        teacher={viewTeacher}
+        onEdit={() => { setEditTeacher(viewTeacher); setViewTeacher(null); }}
+      />
 
       <SafeDeleteDialog
         open={!!deleteTarget}

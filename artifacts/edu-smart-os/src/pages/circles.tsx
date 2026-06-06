@@ -3,10 +3,11 @@ import { useCircles, deleteCircle, type Circle } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Edit, CircleDot, Clock, Users, GraduationCap } from "lucide-react";
+import { Plus, Trash2, Edit, CircleDot, Clock, Users, GraduationCap, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { CircleModal } from "@/components/modals/circle-modal";
+import { CircleDetailModal } from "@/components/modals/circle-detail-modal";
 import { SafeDeleteDialog } from "@/components/safe-delete-dialog";
 
 export default function Circles() {
@@ -15,6 +16,7 @@ export default function Circles() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [editCircle, setEditCircle] = useState<Circle | null>(null);
+  const [viewCircle, setViewCircle] = useState<Circle | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; studentCount: number } | null>(null);
 
   const handleDeleteConfirm = async () => {
@@ -118,6 +120,10 @@ export default function Circles() {
                   <span>{circle.student_count ?? 0} طالب مسجل</span>
                 </div>
                 <div className="flex justify-end gap-2 pt-3 border-t border-muted/50">
+                  <Button variant="outline" size="sm" className="text-accent hover:text-accent hover:bg-accent/10" onClick={() => setViewCircle(circle)}>
+                    <Eye className="h-4 w-4 ml-1" />
+                    الملف
+                  </Button>
                   <Button variant="outline" size="sm" className="text-primary hover:text-primary hover:bg-primary/10" onClick={() => setEditCircle(circle)}>
                     <Edit className="h-4 w-4 ml-1" />
                     تعديل
@@ -139,6 +145,12 @@ export default function Circles() {
 
       <CircleModal open={addOpen} onClose={() => setAddOpen(false)} />
       <CircleModal open={!!editCircle} onClose={() => setEditCircle(null)} circle={editCircle} />
+      <CircleDetailModal
+        open={!!viewCircle}
+        onClose={() => setViewCircle(null)}
+        circle={viewCircle}
+        onEdit={() => { setEditCircle(viewCircle); setViewCircle(null); }}
+      />
 
       <SafeDeleteDialog
         open={!!deleteTarget}

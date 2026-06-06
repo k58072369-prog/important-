@@ -151,10 +151,9 @@ export default function Students() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
-        title="حذف الطالب"
-        description={`هل أنت متأكد من نقل الطالب "${deleteTarget?.name}" إلى سلة المحذوفات؟`}
-        relatedCount={deleteTarget?.relatedCount ?? 0}
-        relatedLabel="سجل مرتبط"
+        itemName={deleteTarget?.name ?? ""}
+        itemType="طالب"
+        impact="سيتم نقل الطالب إلى سلة المحذوفات. يمكن استعادته لاحقاً."
       />
     </div>
   );

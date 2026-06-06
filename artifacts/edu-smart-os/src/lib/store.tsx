@@ -1122,3 +1122,223 @@ export function useActivityLog() {
   );
   return { logs: logs ?? [], loading: logs === undefined };
 }
+
+// ─── UPDATE SESSION RECORD (لتعديل الحضور لاحقاً) ────────────────────────────
+export async function updateSessionRecord(id: string, data: Partial<Omit<SessionRecord, "id" | "created_at">>) {
+  await db.session_records.update(id, data);
+  const rec = await db.session_records.get(id);
+  if (rec?.session_id) {
+    const allRecs = await db.session_records.where("session_id").equals(rec.session_id).toArray();
+    const presentCount = allRecs.filter(r => r.is_present).length;
+    await db.sessions.update(rec.session_id, { present_count: presentCount });
+  }
+}
+
+// ─── STUDENT SMART STATS ─────────────────────────────────────────────────────
+export function useStudentStats(studentId: string | null) {
+  const stats = useLiveQuery(async () => {
+    if (!studentId) return null;
+    const student = await db.students.get(studentId);
+    if (!student) return null;
+
+    const allRecords = await db.session_records.where("student_id").equals(studentId).toArray();
+    const present = allRecords.filter(r => r.is_present);
+    const absent = allRecords.filter(r => !r.is_present);
+    const graded = present.filter(r => r.grade != null && r.grade > 0);
+    const avgGrade = graded.length > 0 ? Math.round(graded.reduce((a, r) => a + (r.grade ?? 0), 0) / graded.length) : 0;
+    const attendancePct = allRecords.length > 0 ? Math.round((present.length / allRecords.length) * 100) : 0;
+
+    const recentSessions: Array<{ date: string; present: boolean; grade?: number; memorization?: string; heard_by?: string }> = [];
+    const sessionIds = [...new Set(allRecords.map(r => r.session_id))];
+    for (const sid of sessionIds.slice(0, 10)) {
+      const ses = await db.sessions.get(sid);
+      const rec = allRecords.find(r => r.session_id === sid);
+      if (ses && rec) {
+        recentSessions.push({ date: ses.date, present: rec.is_present, grade: rec.grade, memorization: rec.memorization_amount, heard_by: rec.heard_by });
+      }
+    }
+    recentSessions.sort((a, b) => b.date.localeCompare(a.date));
+
+    const enrollments = await db.competition_enrollments.where("student_id").equals(studentId).toArray();
+    const competitionResults: Array<{ name: string; level: string; score?: number; grade?: string }> = [];
+    for (const en of enrollments) {
+      const comp = await db.competitions.get(en.competition_id);
+      const lvl = await db.competition_levels.get(en.level_id);
+      const res = await db.competition_results.where("enrollment_id").equals(en.id).first();
+      if (comp) competitionResults.push({ name: comp.name, level: lvl?.name ?? "—", score: res?.score, grade: res?.grade });
+    }
+
+    const courseStudents = await db.course_students.where("student_id").equals(studentId).toArray();
+    const courses: string[] = [];
+    for (const cs of courseStudents) {
+      const course = await db.courses.get(cs.course_id);
+      if (course) courses.push(course.name);
+    }
+
+    const invoices = await db.invoices.where("student_id").equals(studentId).filter(i => !i.deleted_at).toArray();
+    const paidInvoices = invoices.filter(i => i.status === "مدفوع").length;
+    const unpaidInvoices = invoices.filter(i => i.status === "غير مدفوع").length;
+    const totalPaid = invoices.filter(i => i.status === "مدفوع").reduce((s, i) => s + i.amount, 0);
+
+    return {
+      student,
+      totalSessions: allRecords.length,
+      presentCount: present.length,
+      absentCount: absent.length,
+      attendancePct,
+      avgGrade,
+      recentSessions,
+      competitionResults,
+      courses,
+      paidInvoices,
+      unpaidInvoices,
+      totalPaid,
+    };
+  }, [studentId]);
+  return { stats, loading: stats === undefined };
+}
+
+// ─── TEACHER SMART STATS ──────────────────────────────────────────────────────
+export function useTeacherStats(teacherId: string | null) {
+  const stats = useLiveQuery(async () => {
+    if (!teacherId) return null;
+    const teacher = await db.teachers.get(teacherId);
+    if (!teacher) return null;
+
+    const students = await db.students.where("teacher_id").equals(teacherId).filter(s => !s.deleted_at).toArray();
+    const circles = await db.circles.where("teacher_id").equals(teacherId).filter(c => !c.deleted_at).toArray();
+    const sessions = await db.sessions.where("teacher_id").equals(teacherId).filter(s => !s.deleted_at).toArray();
+
+    const studentIds = new Set(students.map(s => s.id));
+    const allRecords = await db.session_records.toArray();
+    const myRecords = allRecords.filter(r => studentIds.has(r.student_id));
+    const present = myRecords.filter(r => r.is_present);
+    const graded = myRecords.filter(r => r.grade != null && r.grade > 0);
+    const avgGrade = graded.length > 0 ? Math.round(graded.reduce((a, r) => a + (r.grade ?? 0), 0) / graded.length) : 0;
+    const attendancePct = myRecords.length > 0 ? Math.round((present.length / myRecords.length) * 100) : 0;
+
+    const salaryRecords = await db.salary_records.where("teacher_id").equals(teacherId).filter(s => !s.deleted_at).toArray();
+    const lastSalary = salaryRecords.sort((a, b) => b.month.localeCompare(a.month))[0];
+
+    const recentSessions = sessions.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+
+    return { teacher, students, circles, sessions, avgGrade, attendancePct, salaryRecords, lastSalary, recentSessions };
+  }, [teacherId]);
+  return { stats, loading: stats === undefined };
+}
+
+// ─── CIRCLE SMART STATS ───────────────────────────────────────────────────────
+export function useCircleStats(circleId: string | null) {
+  const stats = useLiveQuery(async () => {
+    if (!circleId) return null;
+    const circle = await db.circles.get(circleId);
+    if (!circle) return null;
+
+    const students = await db.students.where("circle_id").equals(circleId).filter(s => !s.deleted_at).toArray();
+    const sessions = await db.sessions.where("circle_id").equals(circleId).filter(s => !s.deleted_at).toArray();
+    const recentSessions = sessions.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+
+    const allRecords = await db.session_records.toArray();
+    const circleSids = new Set(sessions.map(s => s.id));
+    const myRecords = allRecords.filter(r => circleSids.has(r.session_id));
+    const present = myRecords.filter(r => r.is_present);
+    const attendancePct = myRecords.length > 0 ? Math.round((present.length / myRecords.length) * 100) : 0;
+
+    const studentPoints = students.map(s => {
+      const recs = myRecords.filter(r => r.student_id === s.id);
+      const p = recs.filter(r => r.is_present).length;
+      const gr = recs.filter(r => r.grade != null && r.grade > 0);
+      const avg = gr.length > 0 ? gr.reduce((a, r) => a + (r.grade ?? 0), 0) / gr.length : 0;
+      return { ...s, attendancePct: recs.length > 0 ? Math.round((p / recs.length) * 100) : 0, avgGrade: Math.round(avg) };
+    });
+    const topStudents = studentPoints.sort((a, b) => b.attendancePct - a.attendancePct).slice(0, 5);
+
+    return { circle, students, sessions: recentSessions, totalSessions: sessions.length, attendancePct, topStudents };
+  }, [circleId]);
+  return { stats, loading: stats === undefined };
+}
+
+// ─── COMPETITION GLOBAL STATS ─────────────────────────────────────────────────
+export function useCompetitionStatsGlobal() {
+  const stats = useLiveQuery(async () => {
+    const competitions = await db.competitions.filter(c => !c.deleted_at).toArray();
+    const levels = await db.competition_levels.filter(l => !l.deleted_at).toArray();
+    const enrollments = await db.competition_enrollments.toArray();
+    const results = await db.competition_results.toArray();
+
+    const totalParticipants = enrollments.length;
+    const resultsWithScore = results.filter(r => r.score != null && r.score > 0);
+    const avgScore = resultsWithScore.length > 0 ? Math.round(resultsWithScore.reduce((a, r) => a + (r.score ?? 0), 0) / resultsWithScore.length) : 0;
+    const passing = results.filter(r => (r.score ?? 0) >= 50).length;
+    const successPct = results.length > 0 ? Math.round((passing / results.length) * 100) : 0;
+
+    const byComp = competitions.map(c => {
+      const cLevels = levels.filter(l => l.competition_id === c.id);
+      const cEnrollments = enrollments.filter(e => e.competition_id === c.id);
+      const cResults = results.filter(r => r.competition_id === c.id);
+      const cPassing = cResults.filter(r => (r.score ?? 0) >= 50).length;
+      const cAvg = cResults.filter(r => (r.score ?? 0) > 0).length > 0
+        ? Math.round(cResults.filter(r => r.score != null).reduce((a, r) => a + (r.score ?? 0), 0) / cResults.filter(r => r.score != null).length) : 0;
+      return { name: c.name, status: c.status, levelCount: cLevels.length, participants: cEnrollments.length, passing: cPassing, avgScore: cAvg };
+    });
+
+    const topScorers = results
+      .filter(r => r.score != null)
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, 10)
+      .map(r => ({ name: r.student_name, score: r.score ?? 0, competition: competitions.find(c => c.id === r.competition_id)?.name ?? "—" }));
+
+    return {
+      totalCompetitions: competitions.length,
+      totalLevels: levels.length,
+      totalParticipants,
+      totalResults: results.length,
+      avgScore,
+      passing,
+      successPct,
+      byComp,
+      topScorers,
+    };
+  }, []);
+  return { stats, loading: stats === undefined };
+}
+
+// ─── GLOBAL SEARCH ────────────────────────────────────────────────────────────
+export function useGlobalSearch(query: string) {
+  const results = useLiveQuery(async () => {
+    if (!query || query.trim().length < 2) return null;
+    const q = query.trim().toLowerCase();
+
+    const [students, teachers, circles, sessions, invoices] = await Promise.all([
+      db.students.filter(s => !s.deleted_at && (
+        s.full_name.toLowerCase().includes(q) ||
+        (s.guardian_phone ?? "").includes(q) ||
+        (s.circle_name ?? "").toLowerCase().includes(q) ||
+        (s.teacher_name ?? "").toLowerCase().includes(q) ||
+        (s.grade ?? "").toLowerCase().includes(q)
+      )).toArray(),
+      db.teachers.filter(t => !t.deleted_at && (
+        t.full_name.toLowerCase().includes(q) ||
+        t.phone.includes(q)
+      )).toArray(),
+      db.circles.filter(c => !c.deleted_at && (
+        c.name.toLowerCase().includes(q) ||
+        (c.teacher_name ?? "").toLowerCase().includes(q) ||
+        (c.days ?? "").includes(q)
+      )).toArray(),
+      db.sessions.filter(s => !s.deleted_at && (
+        (s.circle_name ?? "").toLowerCase().includes(q) ||
+        (s.teacher_name ?? "").toLowerCase().includes(q) ||
+        (s.date ?? "").includes(q) ||
+        (s.day ?? "").includes(q)
+      )).limit(20).toArray(),
+      db.invoices.filter(i => !i.deleted_at && (
+        i.student_name.toLowerCase().includes(q) ||
+        i.month.toLowerCase().includes(q)
+      )).limit(20).toArray(),
+    ]);
+
+    return { students, teachers, circles, sessions, invoices };
+  }, [query]);
+  return { results, loading: results === undefined };
+}

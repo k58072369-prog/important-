@@ -26,6 +26,8 @@ import Reports from "@/pages/reports";
 import MonthlyReports from "@/pages/monthly-reports";
 import TrashPage from "@/pages/trash";
 import ActivityLogPage from "@/pages/activity-log";
+import CompetitionStats from "@/pages/competition-stats";
+import SearchPage from "@/pages/search";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -47,6 +49,8 @@ function Router() {
         <Route path="/monthly-reports" component={MonthlyReports} />
         <Route path="/trash" component={TrashPage} />
         <Route path="/activity-log" component={ActivityLogPage} />
+        <Route path="/competition-stats" component={CompetitionStats} />
+        <Route path="/search" component={SearchPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

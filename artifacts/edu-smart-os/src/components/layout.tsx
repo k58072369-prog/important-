@@ -14,7 +14,7 @@ import {
 import {
   LayoutDashboard, Users, GraduationCap, CircleDot, CalendarDays,
   Wallet, Bell, Trophy, BookOpen, Medal, Shield, BarChart3, FileText,
-  Volume2, VolumeX, Trash2, History,
+  Volume2, VolumeX, Trash2, History, Search, PieChart,
 } from "lucide-react";
 import { BackupPanel } from "@/components/backup-panel";
 import { Button } from "@/components/ui/button";
@@ -64,8 +64,10 @@ export function AppSidebar() {
     { name: "الإشعارات", path: "/notifications", icon: Bell },
     { name: "لوحة الصدارة", path: "/leaderboard", icon: Trophy },
     { name: "صدارة المسابقات", path: "/competition-leaderboard", icon: Trophy },
+    { name: "إحصائيات المسابقات", path: "/competition-stats", icon: PieChart },
     { name: "التقارير والتحليلات", path: "/reports", icon: BarChart3 },
     { name: "التقارير الشهرية", path: "/monthly-reports", icon: FileText },
+    { name: "البحث المتقدم", path: "/search", icon: Search },
   ];
 
   const systemNav = [
