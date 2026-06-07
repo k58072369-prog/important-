@@ -6,6 +6,8 @@ interface SplashScreenProps {
   onDone: () => void;
 }
 
+const MAX_SPLASH_MS = 5000;
+
 export function SplashScreen({ onDone }: SplashScreenProps) {
   const settings = getSplashSettings();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -20,6 +22,13 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
     setVisible(false);
     setTimeout(onDone, 600);
   }, [onDone]);
+
+  // Auto-dismiss after MAX_SPLASH_MS no matter what
+  useEffect(() => {
+    if (!settings.enabled) return;
+    const t = setTimeout(finish, MAX_SPLASH_MS);
+    return () => clearTimeout(t);
+  }, [settings.enabled, finish]);
 
   useEffect(() => {
     if (!settings.enabled) {
@@ -48,13 +57,11 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
     const vid = videoRef.current;
 
     if (settings.autoplay) {
+      vid.muted = true;
       const playPromise = vid.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          vid.muted = true;
-          vid.play().catch(() => {
-            finish();
-          });
+          finish();
         });
       }
     }
@@ -78,6 +85,7 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
               src={videoSrc}
               className="w-full h-full object-cover"
               playsInline
+              muted
               autoPlay={settings.autoplay}
               onEnded={finish}
               onError={() => {
@@ -94,18 +102,18 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
           )}
 
           <motion.button
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.4 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
             onClick={finish}
-            className="absolute top-6 left-6 z-10 flex items-center gap-2 bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white border border-white/20 rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-200 hover:scale-105 cursor-pointer"
+            className="absolute top-6 left-6 z-10 flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full px-6 py-3 text-base font-bold transition-all duration-200 hover:scale-105 cursor-pointer shadow-lg shadow-black/40"
             dir="rtl"
           >
             <span>{settings.skipButtonText}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
