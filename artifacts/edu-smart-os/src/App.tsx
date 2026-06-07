@@ -28,6 +28,7 @@ import TrashPage from "@/pages/trash";
 import ActivityLogPage from "@/pages/activity-log";
 import CompetitionStats from "@/pages/competition-stats";
 import SearchPage from "@/pages/search";
+import Help from "@/pages/help";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -51,6 +52,7 @@ function Router() {
         <Route path="/activity-log" component={ActivityLogPage} />
         <Route path="/competition-stats" component={CompetitionStats} />
         <Route path="/search" component={SearchPage} />
+        <Route path="/help" component={Help} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
