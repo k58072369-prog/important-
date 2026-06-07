@@ -1,17 +1,18 @@
 export interface SplashSettings {
   enabled: boolean;
   autoplay: boolean;
+  playOnce: boolean;
   skipButtonText: string;
-  videoUrl: string;
 }
 
 const KEY = "furqan_splash_settings";
+const PLAYED_KEY = "furqan_splash_played";
 
 const DEFAULTS: SplashSettings = {
   enabled: true,
   autoplay: true,
+  playOnce: false,
   skipButtonText: "تخطي",
-  videoUrl: "/intro.mp4",
 };
 
 export function getSplashSettings(): SplashSettings {
@@ -32,35 +33,29 @@ export function saveSplashSettings(settings: SplashSettings): void {
   }
 }
 
-const CACHE_NAME = "furqan-splash-video-v1";
-
-export async function getCachedVideoUrl(videoUrl: string): Promise<string> {
-  try {
-    if (!("caches" in window)) return videoUrl;
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(videoUrl);
-    if (cached) {
-      const blob = await cached.blob();
-      return URL.createObjectURL(blob);
-    }
-    const resp = await fetch(videoUrl);
-    if (resp.ok) {
-      await cache.put(videoUrl, resp.clone());
-      const blob = await resp.blob();
-      return URL.createObjectURL(blob);
-    }
-    return videoUrl;
-  } catch {
-    return videoUrl;
-  }
+export function hasPlayedBefore(): boolean {
+  return localStorage.getItem(PLAYED_KEY) === "1";
 }
 
-export async function clearVideoCache(): Promise<void> {
+export function markAsPlayed(): void {
   try {
-    if ("caches" in window) {
-      await caches.delete(CACHE_NAME);
-    }
+    localStorage.setItem(PLAYED_KEY, "1");
   } catch {
     // ignore
   }
+}
+
+export function clearPlayedFlag(): void {
+  try {
+    localStorage.removeItem(PLAYED_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+export function shouldShowIntro(): boolean {
+  const settings = getSplashSettings();
+  if (!settings.enabled) return false;
+  if (settings.playOnce && hasPlayedBefore()) return false;
+  return true;
 }

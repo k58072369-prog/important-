@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,8 +7,10 @@ import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { DhikrToast } from "@/components/dhikr-toast";
 import { AudioManager } from "@/components/audio-manager";
+import { IntroScreen } from "@/components/intro-screen";
 import { StoreProvider } from "@/lib/store";
 import { startAutoBackup } from "@/lib/backup";
+import { shouldShowIntro } from "@/lib/splash-settings";
 import Dashboard from "@/pages/dashboard";
 import Students from "@/pages/students";
 import Teachers from "@/pages/teachers";
@@ -27,6 +29,7 @@ import ActivityLogPage from "@/pages/activity-log";
 import CompetitionStats from "@/pages/competition-stats";
 import SearchPage from "@/pages/search";
 import Help from "@/pages/help";
+import VideoSettings from "@/pages/video-settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -51,6 +54,7 @@ function Router() {
         <Route path="/competition-stats" component={CompetitionStats} />
         <Route path="/search" component={SearchPage} />
         <Route path="/help" component={Help} />
+        <Route path="/video-settings" component={VideoSettings} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
@@ -65,18 +69,26 @@ function AppInit() {
 }
 
 function App() {
+  const [showIntro, setShowIntro] = useState(() => shouldShowIntro());
+
   return (
     <ErrorBoundary>
       <StoreProvider>
         <TooltipProvider>
-          <AppInit />
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-          <OfflineIndicator />
-          <DhikrToast />
-          <AudioManager />
+          {showIntro ? (
+            <IntroScreen onDone={() => setShowIntro(false)} />
+          ) : (
+            <>
+              <AppInit />
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+              <Toaster />
+              <OfflineIndicator />
+              <DhikrToast />
+              <AudioManager />
+            </>
+          )}
         </TooltipProvider>
       </StoreProvider>
     </ErrorBoundary>
