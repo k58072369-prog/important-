@@ -32,33 +32,14 @@ import Help from "@/pages/help";
 import VideoSettings from "@/pages/video-settings";
 import NotFound from "@/pages/not-found";
 
-function Router() {
-  return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/students" component={Students} />
-        <Route path="/teachers" component={Teachers} />
-        <Route path="/circles" component={Circles} />
-        <Route path="/sessions" component={Sessions} />
-        <Route path="/courses" component={Courses} />
-        <Route path="/competitions" component={Competitions} />
-        <Route path="/competition-leaderboard" component={CompetitionLeaderboard} />
-        <Route path="/finance" component={Finance} />
-        <Route path="/notifications" component={Notifications} />
-        <Route path="/leaderboard" component={Leaderboard} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/monthly-reports" component={MonthlyReports} />
-        <Route path="/trash" component={TrashPage} />
-        <Route path="/activity-log" component={ActivityLogPage} />
-        <Route path="/competition-stats" component={CompetitionStats} />
-        <Route path="/search" component={SearchPage} />
-        <Route path="/help" component={Help} />
-        <Route path="/video-settings" component={VideoSettings} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
-  );
+type AppPhase = "intro" | "app";
+
+function getInitialPhase(): AppPhase {
+  try {
+    return shouldShowIntro() ? "intro" : "app";
+  } catch {
+    return "app";
+  }
 }
 
 function AppInit() {
@@ -68,38 +49,66 @@ function AppInit() {
   return null;
 }
 
-function App() {
-  const [showIntro, setShowIntro] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (shouldShowIntro()) {
-        setShowIntro(true);
-      }
-    } catch {
-      // If anything fails, just skip the intro
-    }
-  }, []);
-
+function MainApp() {
   return (
-    <ErrorBoundary>
-      <StoreProvider>
-        <TooltipProvider>
-          <AppInit />
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-          <OfflineIndicator />
-          <DhikrToast />
-          <AudioManager />
-          {showIntro && (
-            <IntroScreen onDone={() => setShowIntro(false)} />
-          )}
-        </TooltipProvider>
-      </StoreProvider>
-    </ErrorBoundary>
+    <div dir="rtl" className="min-h-[100dvh] font-sans bg-background text-foreground">
+      <ErrorBoundary>
+        <StoreProvider>
+          <TooltipProvider>
+            <AppInit />
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Layout>
+                <Switch>
+                  <Route path="/" component={Dashboard} />
+                  <Route path="/students" component={Students} />
+                  <Route path="/teachers" component={Teachers} />
+                  <Route path="/circles" component={Circles} />
+                  <Route path="/sessions" component={Sessions} />
+                  <Route path="/courses" component={Courses} />
+                  <Route path="/competitions" component={Competitions} />
+                  <Route path="/competition-leaderboard" component={CompetitionLeaderboard} />
+                  <Route path="/finance" component={Finance} />
+                  <Route path="/notifications" component={Notifications} />
+                  <Route path="/leaderboard" component={Leaderboard} />
+                  <Route path="/reports" component={Reports} />
+                  <Route path="/monthly-reports" component={MonthlyReports} />
+                  <Route path="/trash" component={TrashPage} />
+                  <Route path="/activity-log" component={ActivityLogPage} />
+                  <Route path="/competition-stats" component={CompetitionStats} />
+                  <Route path="/search" component={SearchPage} />
+                  <Route path="/help" component={Help} />
+                  <Route path="/video-settings" component={VideoSettings} />
+                  <Route component={NotFound} />
+                </Switch>
+              </Layout>
+            </WouterRouter>
+            <Toaster />
+            <OfflineIndicator />
+            <DhikrToast />
+            <AudioManager />
+          </TooltipProvider>
+        </StoreProvider>
+      </ErrorBoundary>
+    </div>
   );
+}
+
+function App() {
+  const [phase, setPhase] = useState<AppPhase>(getInitialPhase);
+
+  function enterApp() {
+    setPhase("app");
+  }
+
+  if (phase === "intro") {
+    return (
+      <ErrorBoundary fallback={<MainApp />}>
+        <IntroScreen onDone={enterApp} />
+      </ErrorBoundary>
+    );
+  }
+
+  return <MainApp />;
 }
 
 export default App;

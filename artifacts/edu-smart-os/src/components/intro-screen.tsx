@@ -9,31 +9,34 @@ interface IntroScreenProps {
 export function IntroScreen({ onDone }: IntroScreenProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const [visible, setVisible] = useState(true);
-  const settings = getSplashSettings();
+  const [videoReady, setVideoReady] = useState(false);
   const blobUrlRef = useRef<string | null>(null);
   const doneCalledRef = useRef(false);
+  const settings = getSplashSettings();
 
   const finish = useCallback(() => {
     if (doneCalledRef.current) return;
     doneCalledRef.current = true;
     markAsPlayed();
-    setVisible(false);
-    setTimeout(onDone, 500);
+    onDone();
   }, [onDone]);
 
+  // Load video source (custom from IndexedDB, or default)
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      const blobUrl = await getVideoBlobUrl();
-      if (cancelled) return;
-
-      if (blobUrl) {
-        blobUrlRef.current = blobUrl;
-        setVideoSrc(blobUrl);
-      } else {
-        setVideoSrc("/intro.mp4");
+      try {
+        const blobUrl = await getVideoBlobUrl();
+        if (cancelled) return;
+        if (blobUrl) {
+          blobUrlRef.current = blobUrl;
+          setVideoSrc(blobUrl);
+        } else {
+          setVideoSrc("/intro.mp4");
+        }
+      } catch {
+        if (!cancelled) setVideoSrc("/intro.mp4");
       }
     }
 
@@ -41,70 +44,163 @@ export function IntroScreen({ onDone }: IntroScreenProps) {
 
     return () => {
       cancelled = true;
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-      }
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
     };
   }, []);
 
+  // Autoplay once source is set
   useEffect(() => {
     if (!videoSrc || !videoRef.current) return;
     const vid = videoRef.current;
-
     vid.muted = true;
-
     if (settings.autoplay) {
-      const playPromise = vid.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          finish();
-        });
-      }
+      vid.play().catch(() => {
+        // If autoplay fails for any reason, skip intro
+        finish();
+      });
     }
   }, [videoSrc, settings.autoplay, finish]);
 
-  if (!visible) return null;
-
   return (
     <div
-      className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
-      style={{ direction: "rtl" }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 99999,
+        background: "#000",
+        overflow: "hidden",
+      }}
     >
+      {/* Video fills the screen */}
       {videoSrc && (
         <video
           ref={videoRef}
           src={videoSrc}
-          className="w-full h-full object-cover"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: videoReady ? 1 : 0,
+            transition: "opacity 0.4s ease",
+          }}
           playsInline
           muted
           autoPlay={settings.autoplay}
           preload="auto"
+          onCanPlay={() => setVideoReady(true)}
           onEnded={finish}
           onError={finish}
         />
       )}
 
+      {/* Loading indicator — shows until video is ready */}
+      {!videoReady && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              border: "3px solid rgba(16,185,129,0.25)",
+              borderTopColor: "#10b981",
+              animation: "ispin 0.85s linear infinite",
+            }}
+          />
+          <p
+            style={{
+              color: "rgba(52,211,153,0.7)",
+              fontSize: 13,
+              margin: 0,
+              fontFamily: "system-ui, sans-serif",
+            }}
+          >
+            جاري التحميل...
+          </p>
+        </div>
+      )}
+
+      {/* Skip button — always visible */}
       <button
         onClick={finish}
-        className="absolute top-6 left-6 z-10 flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full px-6 py-3 text-base font-bold transition-all duration-200 hover:scale-105 cursor-pointer shadow-lg shadow-black/40"
+        style={{
+          position: "absolute",
+          top: 20,
+          left: 20,
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          background: "rgba(5,150,105,0.9)",
+          backdropFilter: "blur(8px)",
+          color: "#fff",
+          border: "1px solid rgba(16,185,129,0.4)",
+          borderRadius: 9999,
+          padding: "10px 22px",
+          fontSize: 15,
+          fontWeight: 700,
+          fontFamily: "system-ui, sans-serif",
+          cursor: "pointer",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
+        }}
       >
-        <span>{settings.skipButtonText || "تخطي"}</span>
+        <span>تخطي</span>
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="rotate-180"
+          style={{ transform: "rotate(180deg)" }}
         >
           <polyline points="13 17 18 12 13 7" />
           <polyline points="6 17 11 12 6 7" />
         </svg>
       </button>
+
+      {/* Branding at bottom */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 28,
+          left: 0,
+          right: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 4,
+          pointerEvents: "none",
+        }}
+      >
+        <p
+          style={{
+            color: "rgba(52,211,153,0.8)",
+            fontSize: 15,
+            fontWeight: 700,
+            margin: 0,
+            fontFamily: "system-ui, sans-serif",
+            textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+          }}
+        >
+          مكتب الفرقان لتحفيظ القرآن الكريم
+        </p>
+      </div>
+
+      <style>{`@keyframes ispin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

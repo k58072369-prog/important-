@@ -3,10 +3,24 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 
-createRoot(document.getElementById("root")!).render(
+// Hide the native HTML loader once React is ready
+function hideNativeLoader() {
+  const loader = document.getElementById("native-loader");
+  if (loader) {
+    loader.classList.add("hidden");
+    setTimeout(() => loader.remove(), 600);
+  }
+  // Restore body background after React takes over
+  document.body.style.background = "";
+}
+
+const rootEl = document.getElementById("root")!;
+
+createRoot(rootEl).render(
   <StrictMode>
-    <div dir="rtl" className="min-h-[100dvh] font-sans bg-background text-foreground">
-      <App />
-    </div>
+    <App />
   </StrictMode>
 );
+
+// Hide native loader as soon as React starts rendering
+hideNativeLoader();

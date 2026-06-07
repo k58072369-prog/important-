@@ -13,8 +13,64 @@
     <meta name="twitter:title" content="مكتب الفرقان لتحفيظ القرآن" />
     <meta name="twitter:description" content="لوحة تحكم وإدارة مكتب الفرقان لتحفيظ القرآن الكريم" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      /* Prevent white flash before React mounts */
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        min-height: 100dvh;
+      }
+      #root {
+        min-height: 100dvh;
+      }
+      /* Native loader shown before React hydrates */
+      #native-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        transition: opacity 0.5s ease;
+      }
+      #native-loader.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #native-loader-logo {
+        font-size: 22px;
+        font-weight: 700;
+        color: #10b981;
+        font-family: system-ui, -apple-system, sans-serif;
+        letter-spacing: 1px;
+      }
+      #native-loader-sub {
+        font-size: 13px;
+        color: rgba(52,211,153,0.6);
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      #native-loader-spinner {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 3px solid rgba(16,185,129,0.2);
+        border-top-color: #10b981;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
+    <!-- Shown immediately before React loads — prevents white flash -->
+    <div id="native-loader">
+      <div id="native-loader-spinner"></div>
+      <div id="native-loader-logo">مكتب الفرقان</div>
+      <div id="native-loader-sub">لتحفيظ القرآن الكريم</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
