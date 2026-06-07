@@ -69,25 +69,32 @@ function AppInit() {
 }
 
 function App() {
-  const [showIntro, setShowIntro] = useState(() => shouldShowIntro());
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (shouldShowIntro()) {
+        setShowIntro(true);
+      }
+    } catch {
+      // If anything fails, just skip the intro
+    }
+  }, []);
 
   return (
     <ErrorBoundary>
       <StoreProvider>
         <TooltipProvider>
-          {showIntro ? (
+          <AppInit />
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+          <OfflineIndicator />
+          <DhikrToast />
+          <AudioManager />
+          {showIntro && (
             <IntroScreen onDone={() => setShowIntro(false)} />
-          ) : (
-            <>
-              <AppInit />
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <Router />
-              </WouterRouter>
-              <Toaster />
-              <OfflineIndicator />
-              <DhikrToast />
-              <AudioManager />
-            </>
           )}
         </TooltipProvider>
       </StoreProvider>
