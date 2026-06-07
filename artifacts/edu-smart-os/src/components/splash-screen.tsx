@@ -6,8 +6,6 @@ interface SplashScreenProps {
   onDone: () => void;
 }
 
-const MAX_SPLASH_MS = 5000;
-
 export function SplashScreen({ onDone }: SplashScreenProps) {
   const settings = getSplashSettings();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -22,13 +20,6 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
     setVisible(false);
     setTimeout(onDone, 600);
   }, [onDone]);
-
-  // Auto-dismiss after MAX_SPLASH_MS no matter what
-  useEffect(() => {
-    if (!settings.enabled) return;
-    const t = setTimeout(finish, MAX_SPLASH_MS);
-    return () => clearTimeout(t);
-  }, [settings.enabled, finish]);
 
   useEffect(() => {
     if (!settings.enabled) {
