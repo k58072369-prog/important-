@@ -1,95 +1,43 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { HelpCircle, MessageCircle, PhoneIcon, PlayCircle, Upload, Trash2, RotateCcw } from "lucide-react";
-import { useState, useRef } from "react";
-import { getSplashSettings, saveSplashSettings, clearVideoCache, type SplashSettings } from "@/lib/splash-settings";
-import { useToast } from "@/hooks/use-toast";
+import { HelpCircle, MessageCircle, PhoneIcon } from "lucide-react";
+
+const faqs = [
+  {
+    q: "كيف يمكنني إضافة طالب جديد إلى حلقة معينة؟",
+    a: "من صفحة 'الطلاب'، انقر على زر 'إضافة طالب'. في النموذج الذي يظهر، قم بتعبئة بيانات الطالب وحدد الحلقة المطلوبة من القائمة المنسدلة."
+  },
+  {
+    q: "كيف أتابع حضور وغياب الطلاب بشكل يومي؟",
+    a: "من صفحة 'الحصص'، قم بإنشاء حصة جديدة للحلقة. بعد ذلك، يمكنك الدخول لتفاصيل الحصة وتسجيل حضور وغياب كل طالب وتقييم أدائه."
+  },
+  {
+    q: "كيف يعمل نظام لوحة الصدارة؟",
+    a: "يتم حساب النقاط تلقائياً بناءً على حضور الطالب، تقييمات الحفظ والمراجعة، والتزامه في الحصص. يتم تحديث الترتيب بشكل فوري."
+  },
+  {
+    q: "كيف يمكنني إصدار فاتورة شهرية للطالب؟",
+    a: "من صفحة 'الشؤون المالية'، قسم 'الاشتراكات والفواتير'، انقر على 'إصدار فاتورة' وحدد الطالب والشهر والمبلغ المطلوب."
+  },
+  {
+    q: "كيف أختار عدة أيام للحلقة؟",
+    a: "عند إنشاء أو تعديل الحلقة، ستجد قسم 'أيام الحلقة' يتيح اختيار أكثر من يوم عبر خانات الاختيار. يمكنك تحديد أي مجموعة من أيام الأسبوع."
+  },
+  {
+    q: "كيف أسجّل حضور جلسة اختبار المسابقة؟",
+    a: "من صفحة 'المسابقات'، افتح المسابقة واختر المستوى، ثم انقر على 'جلسات الاختبار'. أنشئ جلسة جديدة وسيتم جلب المشاركين تلقائياً لتسجيل الحضور والدرجات."
+  },
+  {
+    q: "هل يعمل النظام بدون إنترنت؟",
+    a: "نعم. النظام يعمل بالكامل بدون إنترنت، جميع البيانات محفوظة محلياً في المتصفح (IndexedDB). يمكنك استخدام جميع الميزات في أي وقت."
+  },
+  {
+    q: "كيف أعمل نسخة احتياطية للبيانات؟",
+    a: "من أسفل القائمة الجانبية، انقر على 'النسخ الاحتياطية'. يمكنك إنشاء نسخة يدوية أو تفعيل النسخ التلقائي، والاستعادة منها في أي وقت."
+  },
+];
 
 export default function Help() {
-  const { toast } = useToast();
-
-  const [splashSettings, setSplashSettings] = useState<SplashSettings>(getSplashSettings);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const updateSplash = (patch: Partial<SplashSettings>) => {
-    const next = { ...splashSettings, ...patch };
-    setSplashSettings(next);
-    saveSplashSettings(next);
-  };
-
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("video/")) {
-      toast({ title: "خطأ", description: "يرجى اختيار ملف فيديو صالح", variant: "destructive" });
-      return;
-    }
-
-    try {
-      const CACHE_NAME = "furqan-splash-video-v1";
-      const videoUrl = "/intro.mp4";
-
-      if ("caches" in window) {
-        const cache = await caches.open(CACHE_NAME);
-        const response = new Response(file, {
-          headers: { "Content-Type": file.type },
-        });
-        await cache.put(videoUrl, response);
-      }
-
-      updateSplash({ videoUrl });
-      toast({ title: "تم رفع الفيديو", description: "تم حفظ الفيديو الافتتاحي بنجاح" });
-    } catch {
-      toast({ title: "خطأ", description: "فشل رفع الفيديو، حاول مرة أخرى", variant: "destructive" });
-    }
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleClearCache = async () => {
-    await clearVideoCache();
-    updateSplash({ videoUrl: "/intro.mp4" });
-    toast({ title: "تم المسح", description: "تم مسح ذاكرة التخزين المؤقت للفيديو" });
-  };
-
-  const faqs = [
-    {
-      q: "كيف يمكنني إضافة طالب جديد إلى حلقة معينة؟",
-      a: "من صفحة 'الطلاب'، انقر على زر 'إضافة طالب'. في النموذج الذي يظهر، قم بتعبئة بيانات الطالب وحدد الحلقة المطلوبة من القائمة المنسدلة."
-    },
-    {
-      q: "كيف أتابع حضور وغياب الطلاب بشكل يومي؟",
-      a: "من صفحة 'الحصص'، قم بإنشاء حصة جديدة للحلقة. بعد ذلك، يمكنك الدخول لتفاصيل الحصة وتسجيل حضور وغياب كل طالب وتقييم أدائه."
-    },
-    {
-      q: "كيف يعمل نظام لوحة الصدارة؟",
-      a: "يتم حساب النقاط تلقائياً بناءً على حضور الطالب، تقييمات الحفظ والمراجعة، والتزامه في الحصص. يتم تحديث الترتيب بشكل فوري."
-    },
-    {
-      q: "كيف يمكنني إصدار فاتورة شهرية للطالب؟",
-      a: "من صفحة 'الشؤون المالية'، قسم 'الاشتراكات والفواتير'، انقر على 'إصدار فاتورة' وحدد الطالب والشهر والمبلغ المطلوب."
-    },
-    {
-      q: "كيف أختار عدة أيام للحلقة؟",
-      a: "عند إنشاء أو تعديل الحلقة، ستجد قسم 'أيام الحلقة' يتيح اختيار أكثر من يوم عبر خانات الاختيار. يمكنك تحديد أي مجموعة من أيام الأسبوع."
-    },
-    {
-      q: "كيف أسجّل حضور جلسة اختبار المسابقة؟",
-      a: "من صفحة 'المسابقات'، افتح المسابقة واختر المستوى، ثم انقر على 'جلسات الاختبار'. أنشئ جلسة جديدة وسيتم جلب المشاركين تلقائياً لتسجيل الحضور والدرجات."
-    },
-    {
-      q: "هل يعمل النظام بدون إنترنت؟",
-      a: "نعم. النظام يعمل بالكامل بدون إنترنت، جميع البيانات محفوظة محلياً في المتصفح (IndexedDB). يمكنك استخدام جميع الميزات في أي وقت."
-    },
-    {
-      q: "كيف أعمل نسخة احتياطية للبيانات؟",
-      a: "من أسفل القائمة الجانبية، انقر على 'النسخ الاحتياطية'. يمكنك إنشاء نسخة يدوية أو تفعيل النسخ التلقائي، والاستعادة منها في أي وقت."
-    },
-  ];
-
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="text-center space-y-4 py-8">
@@ -104,101 +52,6 @@ export default function Help() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
-
-          {/* ─── Splash Screen Settings ───────────────────────────── */}
-          <Card className="border-amber-500/30 bg-amber-50/30 dark:bg-amber-950/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl text-secondary">
-                <PlayCircle className="h-5 w-5 text-amber-500" />
-                إعدادات الشاشة الافتتاحية
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-
-              <div className="flex items-center justify-between p-4 bg-card rounded-xl border">
-                <div>
-                  <p className="font-semibold text-sm">تفعيل الشاشة الافتتاحية</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">عرض الفيديو الافتتاحي عند تشغيل النظام</p>
-                </div>
-                <Switch
-                  checked={splashSettings.enabled}
-                  onCheckedChange={(v) => updateSplash({ enabled: v })}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-card rounded-xl border">
-                <div>
-                  <p className="font-semibold text-sm">تشغيل الفيديو تلقائياً</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">يبدأ الفيديو مباشرة عند فتح النظام</p>
-                </div>
-                <Switch
-                  checked={splashSettings.autoplay}
-                  onCheckedChange={(v) => updateSplash({ autoplay: v })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="skip-text" className="font-semibold text-sm">نص زر التخطي</Label>
-                <Input
-                  id="skip-text"
-                  value={splashSettings.skipButtonText}
-                  onChange={(e) => updateSplash({ skipButtonText: e.target.value })}
-                  placeholder="تخطي"
-                  className="max-w-xs"
-                />
-                <p className="text-xs text-muted-foreground">النص الذي يظهر على زر التخطي في الشاشة الافتتاحية</p>
-              </div>
-
-              <div className="space-y-3">
-                <Label className="font-semibold text-sm">استبدال الفيديو الافتتاحي</Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="video/*"
-                    onChange={handleVideoUpload}
-                    className="hidden"
-                    id="video-upload"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 border-amber-500/40 hover:bg-amber-50"
-                  >
-                    <Upload className="h-4 w-4 text-amber-600" />
-                    رفع فيديو جديد
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleClearCache}
-                    className="flex items-center gap-2 border-red-300 hover:bg-red-50 text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    مسح الذاكرة المؤقتة
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  يُحفظ الفيديو في ذاكرة التخزين المؤقت للمتصفح لضمان تشغيله بدون إنترنت
-                </p>
-              </div>
-
-              <div className="pt-2 border-t">
-                <Button
-                  onClick={() => {
-                    saveSplashSettings({ ...splashSettings, enabled: true });
-                    window.location.reload();
-                  }}
-                  className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  معاينة الشاشة الافتتاحية
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">سيتم إعادة تحميل الصفحة لمعاينة الشاشة الافتتاحية</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ─── FAQ ─────────────────────────────────────────────── */}
           <Card className="border-gold-500/20">
             <CardHeader>
               <CardTitle className="text-2xl text-secondary">الأسئلة الشائعة</CardTitle>
