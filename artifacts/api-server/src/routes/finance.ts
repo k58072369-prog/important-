@@ -612,9 +612,7 @@ router.get("/finance/analytics", async (req, res): Promise<void> => {
   const invoices = await db.select().from(invoicesTable);
   const expenses = await db.select().from(expensesTable);
   const incomeEntries = await db.select().from(incomeEntriesTable);
-  const salaryRecords = await db.select({ ...salaryRecordsTable, teacherName: teachersTable.fullName })
-    .from(salaryRecordsTable)
-    .leftJoin(teachersTable, eq(salaryRecordsTable.teacherId, teachersTable.id));
+  const salaryRecords = await db.select().from(salaryRecordsTable);
   const teachers = await db.select().from(teachersTable);
 
   // Monthly trends
