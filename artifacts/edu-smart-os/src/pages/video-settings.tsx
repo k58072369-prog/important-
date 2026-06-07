@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { IntroScreen } from "@/components/intro-screen";
 import {
   saveVideoToIndexedDB,
   getVideoFromIndexedDB,
@@ -17,7 +18,7 @@ import {
 } from "@/lib/splash-settings";
 import {
   Upload, Trash2, Play, Film, HardDrive, Calendar, RefreshCw,
-  ToggleLeft, ToggleRight, Eye,
+  ToggleRight, Eye, MonitorPlay,
 } from "lucide-react";
 
 function formatBytes(bytes: number): string {
@@ -39,6 +40,7 @@ export default function VideoSettings() {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showFullIntro, setShowFullIntro] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewBlobRef = useRef<string | null>(null);
 
@@ -228,6 +230,14 @@ export default function VideoSettings() {
               {showPreview ? "إخفاء المعاينة" : "معاينة الفيديو"}
             </Button>
 
+            <Button
+              className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+              onClick={() => setShowFullIntro(true)}
+            >
+              <MonitorPlay className="h-4 w-4" />
+              تجربة الشاشة الافتتاحية كاملة
+            </Button>
+
             {hasCustomVideo && (
               <Button
                 variant="outline"
@@ -269,6 +279,10 @@ export default function VideoSettings() {
           <li>تظهر شاشة الفيديو قبل لوحة التحكم مباشرة عند فتح النظام</li>
         </ul>
       </div>
+
+      {showFullIntro && (
+        <IntroScreen onDone={() => setShowFullIntro(false)} />
+      )}
     </div>
   );
 }
