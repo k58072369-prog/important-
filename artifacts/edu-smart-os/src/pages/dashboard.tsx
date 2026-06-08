@@ -1,15 +1,18 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { useDashboardStats, useLeaderboard, useSessions, useNotifications } from "@/lib/store";
+import { seedDemoData, clearAllData } from "@/lib/seed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Users, GraduationCap, CircleDot, CalendarDays,
   TrendingUp, TrendingDown, Bell, Trophy,
   CheckCircle, XCircle, Wallet, Star,
   BookOpen, ArrowLeft, Calendar, BarChart3,
-  Medal, AlertTriangle,
+  Medal, AlertTriangle, Database, Loader2,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -21,6 +24,25 @@ export default function Dashboard() {
   const { leaderboard } = useLeaderboard();
   const { sessions } = useSessions();
   const { notifications } = useNotifications();
+  const [seeding, setSeeding] = useState(false);
+  const { toast } = useToast();
+
+  const handleSeedData = async (reset = false) => {
+    setSeeding(true);
+    try {
+      if (reset) await clearAllData();
+      const result = await seedDemoData();
+      if (result.skipped && !reset) {
+        toast({ title: "البيانات موجودة", description: "استخدم زر «إعادة التهيئة» لمسح البيانات وإعادة البذر من جديد." });
+      } else {
+        toast({ title: `✅ تم تحميل البيانات التجريبية`, description: "25 طالب · 4 معلمين · 5 حلقات · 3 مسابقات · دورتان + حصص وفواتير وإشعارات" });
+      }
+    } catch (err: any) {
+      toast({ title: "خطأ في تحميل البيانات", description: err?.message ?? "فشلت العملية", variant: "destructive" });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const unreadNotifs = notifications?.filter(n => !n.is_read).length ?? 0;
   const topStudents = leaderboard?.slice(0, 5) ?? [];
@@ -73,6 +95,29 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">مكتب الفرقان لتحفيظ القرآن الكريم — نظرة عامة شاملة</p>
         </div>
         <div className="flex items-center gap-3">
+          {stats.total_students === 0 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSeedData(false)}
+              disabled={seeding}
+              className="border-primary/40 text-primary hover:bg-primary/5 font-semibold"
+            >
+              {seeding ? <Loader2 className="h-4 w-4 animate-spin ml-1" /> : <Database className="h-4 w-4 ml-1" />}
+              {seeding ? "جاري التحميل..." : "تحميل بيانات تجريبية"}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSeedData(true)}
+              disabled={seeding}
+              className="border-amber-400/60 text-amber-700 hover:bg-amber-50 text-xs"
+            >
+              {seeding ? <Loader2 className="h-3 w-3 animate-spin ml-1" /> : <Database className="h-3 w-3 ml-1" />}
+              {seeding ? "جاري إعادة التهيئة..." : "إعادة تهيئة البيانات"}
+            </Button>
+          )}
           {unreadNotifs > 0 && (
             <Link href="/notifications">
               <Button variant="outline" size="sm" className="relative text-primary border-primary">
