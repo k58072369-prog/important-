@@ -47,15 +47,24 @@ function getInitialPhase(): AppPhase {
   }
 }
 
+/** Wraps a page component in a section-level ErrorBoundary so one broken page
+ *  never crashes the whole shell. The name is shown in the Arabic error message. */
+function Page({ name, children }: { name: string; children: React.ReactNode }) {
+  return (
+    <ErrorBoundary section={name}>
+      {children}
+    </ErrorBoundary>
+  );
+}
+
 function AppInit() {
   useEffect(() => {
-    startAutoBackup();
+    try { startAutoBackup(); } catch { /* non-fatal */ }
     backfillStudentCodes().catch(() => {});
 
-    // One-time: clear demo data that was auto-seeded previously
+    // One-time: clear any previously auto-seeded demo data
     if (!localStorage.getItem(DEMO_CLEARED_KEY)) {
       localStorage.setItem(DEMO_CLEARED_KEY, "1");
-      // Clear old seed flags so demo data won't get re-seeded
       localStorage.removeItem("furqan_demo_seeded_v1");
       localStorage.removeItem("furqan_demo_seeded_v2");
       clearAllData().catch(() => {});
@@ -74,26 +83,26 @@ function MainApp() {
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <Layout>
                 <Switch>
-                  <Route path="/" component={Dashboard} />
-                  <Route path="/students" component={Students} />
-                  <Route path="/teachers" component={Teachers} />
-                  <Route path="/circles" component={Circles} />
-                  <Route path="/sessions" component={Sessions} />
-                  <Route path="/courses" component={Courses} />
-                  <Route path="/competitions" component={Competitions} />
-                  <Route path="/competition-leaderboard" component={CompetitionLeaderboard} />
-                  <Route path="/finance" component={Finance} />
-                  <Route path="/notifications" component={Notifications} />
-                  <Route path="/leaderboard" component={Leaderboard} />
-                  <Route path="/reports" component={Reports} />
-                  <Route path="/monthly-reports" component={MonthlyReports} />
-                  <Route path="/trash" component={TrashPage} />
-                  <Route path="/activity-log" component={ActivityLogPage} />
-                  <Route path="/competition-stats" component={CompetitionStats} />
-                  <Route path="/search" component={SearchPage} />
-                  <Route path="/help" component={Help} />
-                  <Route path="/video-settings" component={VideoSettings} />
-                  <Route path="/settings" component={SettingsPage} />
+                  <Route path="/" component={() => <Page name="لوحة التحكم"><Dashboard /></Page>} />
+                  <Route path="/students" component={() => <Page name="الطلاب"><Students /></Page>} />
+                  <Route path="/teachers" component={() => <Page name="المعلمون"><Teachers /></Page>} />
+                  <Route path="/circles" component={() => <Page name="الحلقات"><Circles /></Page>} />
+                  <Route path="/sessions" component={() => <Page name="الحصص"><Sessions /></Page>} />
+                  <Route path="/courses" component={() => <Page name="الدورات"><Courses /></Page>} />
+                  <Route path="/competitions" component={() => <Page name="المسابقات"><Competitions /></Page>} />
+                  <Route path="/competition-leaderboard" component={() => <Page name="صدارة المسابقات"><CompetitionLeaderboard /></Page>} />
+                  <Route path="/finance" component={() => <Page name="الشؤون المالية"><Finance /></Page>} />
+                  <Route path="/notifications" component={() => <Page name="الإشعارات"><Notifications /></Page>} />
+                  <Route path="/leaderboard" component={() => <Page name="لوحة الصدارة"><Leaderboard /></Page>} />
+                  <Route path="/reports" component={() => <Page name="التقارير"><Reports /></Page>} />
+                  <Route path="/monthly-reports" component={() => <Page name="التقارير الشهرية"><MonthlyReports /></Page>} />
+                  <Route path="/trash" component={() => <Page name="سلة المحذوفات"><TrashPage /></Page>} />
+                  <Route path="/activity-log" component={() => <Page name="سجل العمليات"><ActivityLogPage /></Page>} />
+                  <Route path="/competition-stats" component={() => <Page name="إحصائيات المسابقات"><CompetitionStats /></Page>} />
+                  <Route path="/search" component={() => <Page name="البحث المتقدم"><SearchPage /></Page>} />
+                  <Route path="/help" component={() => <Page name="مركز المساعدة"><Help /></Page>} />
+                  <Route path="/video-settings" component={() => <Page name="الفيديو الافتتاحي"><VideoSettings /></Page>} />
+                  <Route path="/settings" component={() => <Page name="الإعدادات"><SettingsPage /></Page>} />
                   <Route component={NotFound} />
                 </Switch>
               </Layout>

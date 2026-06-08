@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { getVideoBlobUrl } from "@/lib/intro-video-db";
 import { getSplashSettings, markAsPlayed } from "@/lib/splash-settings";
 
+const MAX_WAIT_MS = 6000; // hard cap — skip intro if nothing happens within 6s
+
 interface IntroScreenProps {
   onDone: () => void;
 }
@@ -12,14 +14,26 @@ export function IntroScreen({ onDone }: IntroScreenProps) {
   const [videoReady, setVideoReady] = useState(false);
   const blobUrlRef = useRef<string | null>(null);
   const doneCalledRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const settings = getSplashSettings();
 
   const finish = useCallback(() => {
     if (doneCalledRef.current) return;
     doneCalledRef.current = true;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     markAsPlayed();
     onDone();
   }, [onDone]);
+
+  // Hard safety timeout — never leave user stuck on intro screen
+  useEffect(() => {
+    timeoutRef.current = setTimeout(() => {
+      if (!doneCalledRef.current) finish();
+    }, MAX_WAIT_MS);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [finish]);
 
   // Load video source (custom from IndexedDB, or default)
   useEffect(() => {
@@ -55,7 +69,7 @@ export function IntroScreen({ onDone }: IntroScreenProps) {
     vid.muted = true;
     if (settings.autoplay) {
       vid.play().catch(() => {
-        // If autoplay fails for any reason, skip intro
+        // If autoplay fails for any reason, skip intro immediately
         finish();
       });
     }
@@ -92,6 +106,8 @@ export function IntroScreen({ onDone }: IntroScreenProps) {
           onCanPlay={() => setVideoReady(true)}
           onEnded={finish}
           onError={finish}
+          onStalled={finish}
+          onAbort={finish}
         />
       )}
 

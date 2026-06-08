@@ -11,7 +11,7 @@ const PLAYED_KEY = "furqan_splash_played";
 const DEFAULTS: SplashSettings = {
   enabled: true,
   autoplay: true,
-  playOnce: false,
+  playOnce: true,
   skipButtonText: "تخطي",
 };
 
