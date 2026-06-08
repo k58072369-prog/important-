@@ -102,6 +102,9 @@ export default function Students() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-secondary truncate">{student.full_name}</p>
+                      {student.student_code && (
+                        <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">{student.student_code}</span>
+                      )}
                       {student.level && (
                         <Badge variant="outline" className={`text-xs ${levelColor(student.level)}`}>{student.level}</Badge>
                       )}

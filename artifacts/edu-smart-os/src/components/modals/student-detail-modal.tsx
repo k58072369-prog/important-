@@ -45,6 +45,11 @@ export function StudentDetailModal({ open, onClose, student, onEdit }: StudentDe
               <h2 className="text-2xl font-bold text-secondary">{student.full_name}</h2>
               <p className="text-muted-foreground mt-0.5">{student.grade || "—"}</p>
               <div className="flex gap-2 mt-2 flex-wrap">
+                {student.student_code && (
+                  <Badge className="bg-emerald-900 text-white hover:bg-emerald-900 font-mono text-xs">
+                    #{student.student_code}
+                  </Badge>
+                )}
                 {student.circle_name && (
                   <Badge variant="outline" className="text-xs border-primary/30 text-primary">
                     <Users className="h-3 w-3 ml-1" />{student.circle_name}

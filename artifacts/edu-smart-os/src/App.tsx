@@ -11,6 +11,7 @@ import { IntroScreen } from "@/components/intro-screen";
 import { StoreProvider } from "@/lib/store";
 import { startAutoBackup } from "@/lib/backup";
 import { shouldShowIntro } from "@/lib/splash-settings";
+import { backfillStudentCodes } from "@/lib/store";
 import Dashboard from "@/pages/dashboard";
 import Students from "@/pages/students";
 import Teachers from "@/pages/teachers";
@@ -45,6 +46,7 @@ function getInitialPhase(): AppPhase {
 function AppInit() {
   useEffect(() => {
     startAutoBackup();
+    backfillStudentCodes().catch(() => {});
   }, []);
   return null;
 }

@@ -52,13 +52,39 @@ async function logActivity(params: {
 }
 
 // ─── STUDENTS ──────────────────────────────────────────────────────────────
+// ─── STUDENT CODES ─────────────────────────────────────────────────────────
+const CODE_COUNTER_KEY = "furqan_student_code_counter";
+
+function generateStudentCode(): string {
+  const current = parseInt(localStorage.getItem(CODE_COUNTER_KEY) ?? "0", 10);
+  const next = current + 1;
+  localStorage.setItem(CODE_COUNTER_KEY, String(next));
+  return `STD-${String(next).padStart(5, "0")}`;
+}
+
+export async function backfillStudentCodes(): Promise<void> {
+  try {
+    const all = await db.students.toArray();
+    const withoutCode = all.filter(s => !s.student_code);
+    if (withoutCode.length === 0) return;
+    for (const s of withoutCode) {
+      const code = generateStudentCode();
+      await db.students.update(s.id, { student_code: code, updated_at: now() });
+    }
+  } catch { /* ignore */ }
+}
+
 export function useStudents(search?: string) {
   const students = useLiveQuery(async () => {
     let all = await db.students.orderBy("created_at").toArray();
     all = all.filter(s => !s.deleted_at);
     if (search) {
       const q = search.toLowerCase();
-      all = all.filter(s => s.full_name.toLowerCase().includes(q));
+      all = all.filter(s =>
+        s.full_name.toLowerCase().includes(q) ||
+        (s.student_code && s.student_code.toLowerCase().includes(q)) ||
+        (s.guardian_phone && s.guardian_phone.includes(q))
+      );
     }
     return all;
   }, [search]);
@@ -70,7 +96,8 @@ export async function addStudent(data: Omit<Student, "id" | "created_at" | "upda
   const ts = now();
   const teacher_name = await resolveTeacherName(data.teacher_id);
   const circle_name = await resolveCircleName(data.circle_id);
-  await db.students.add({ ...data, id, teacher_name, circle_name, created_at: ts, updated_at: ts });
+  const student_code = data.student_code || generateStudentCode();
+  await db.students.add({ ...data, id, student_code, teacher_name, circle_name, created_at: ts, updated_at: ts });
   if (!data.is_exempt && data.payment_amount && data.payment_amount > 0) {
     await _generateMonthlyInvoice(id, data.full_name, data.payment_amount);
   }
@@ -952,13 +979,33 @@ export async function generateMonthlyReport(studentId: string, month: string): P
   const sessions_count = myRecords.length;
   const present_count = myRecords.filter(r => r.is_present).length;
   const absent_count = sessions_count - present_count;
+  const late_count = myRecords.filter(r => !r.is_present && (r.notes?.includes("تأخر") || r.notes?.includes("متأخر"))).length;
+  const excused_count = myRecords.filter(r => !r.is_present && (r.notes?.includes("اعتذار") || r.notes?.includes("عذر") || r.notes?.includes("مريض"))).length;
   const attendance_pct = sessions_count > 0 ? Math.round((present_count / sessions_count) * 100) : 0;
+
   const graded = myRecords.filter(r => r.grade != null && r.grade > 0);
   const avg_grade = graded.length > 0 ? Math.round(graded.reduce((a, r) => a + (r.grade ?? 0), 0) / graded.length) : 0;
   const max_grade = graded.length > 0 ? Math.max(...graded.map(r => r.grade ?? 0)) : 0;
   const min_grade = graded.length > 0 ? Math.min(...graded.map(r => r.grade ?? 0)) : 0;
+
   const memorization_count = myRecords.filter(r => r.is_present && r.memorization_amount && r.memorization_amount.trim()).length;
   const revision_count = myRecords.filter(r => r.is_present && r.revision_amount && r.revision_amount.trim()).length;
+
+  // last memorization / revision position from session records
+  const presentRecords = [...myRecords].filter(r => r.is_present);
+  const lastMemoRec = [...presentRecords].reverse().find(r => r.next_memorization && r.next_memorization.trim());
+  const lastRevRec = [...presentRecords].reverse().find(r => r.next_revision && r.next_revision.trim());
+  const last_memorization = lastMemoRec?.next_memorization;
+  const last_revision = lastRevRec?.next_revision;
+
+  // performance labels
+  const perf = myRecords.filter(r => r.is_present && r.performance_label);
+  const rating_excellent = perf.filter(r => r.performance_label === "ممتاز").length;
+  const rating_very_good = perf.filter(r => r.performance_label === "جيد جداً").length;
+  const rating_good = perf.filter(r => r.performance_label === "جيد").length;
+  const rating_acceptable = perf.filter(r => r.performance_label === "مقبول").length;
+  const rating_poor = perf.filter(r => r.performance_label === "ضعيف").length;
+
   const month_label = getMonthLabel(month);
 
   const evaluation_text = _buildEvaluationText({
@@ -972,20 +1019,32 @@ export async function generateMonthlyReport(studentId: string, month: string): P
   const reportData = {
     id: reportId,
     student_id: studentId,
+    student_code: student.student_code,
     student_name: student.full_name,
     teacher_name: student.teacher_name,
     circle_name: student.circle_name,
+    guardian_phone: student.guardian_phone,
+    grade: student.grade,
     month,
     month_label,
     sessions_count,
     present_count,
     absent_count,
+    late_count,
+    excused_count,
     attendance_pct,
     avg_grade,
     max_grade,
     min_grade,
     memorization_count,
     revision_count,
+    last_memorization,
+    last_revision,
+    rating_excellent,
+    rating_very_good,
+    rating_good,
+    rating_acceptable,
+    rating_poor,
     evaluation_text,
     created_at: nowFn(),
   };
@@ -996,6 +1055,18 @@ export async function generateMonthlyReport(studentId: string, month: string): P
     await db.monthly_reports.add(reportData);
   }
   return reportId;
+}
+
+export async function generateAllMonthlyReports(month: string): Promise<number> {
+  const allStudents = await db.students.filter(s => !s.deleted_at).toArray();
+  let count = 0;
+  for (const s of allStudents) {
+    try {
+      await generateMonthlyReport(s.id, month);
+      count++;
+    } catch { /* skip */ }
+  }
+  return count;
 }
 
 // ─── TRASH + RESTORE + PERMANENT DELETE ─────────────────────────────────────

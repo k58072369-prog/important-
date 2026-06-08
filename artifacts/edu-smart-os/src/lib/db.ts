@@ -2,6 +2,7 @@ import Dexie, { type Table } from "dexie";
 
 export interface Student {
   id: string;
+  student_code?: string;
   full_name: string;
   age?: number;
   birth_date?: string;
@@ -275,20 +276,32 @@ export interface CompetitionResult {
 export interface MonthlyReport {
   id: string;
   student_id: string;
+  student_code?: string;
   student_name: string;
   teacher_name?: string;
   circle_name?: string;
+  guardian_phone?: string;
+  grade?: string;
   month: string;
   month_label: string;
   sessions_count: number;
   present_count: number;
   absent_count: number;
+  late_count?: number;
+  excused_count?: number;
   attendance_pct: number;
   avg_grade: number;
   max_grade: number;
   min_grade: number;
   memorization_count: number;
   revision_count: number;
+  last_memorization?: string;
+  last_revision?: string;
+  rating_excellent?: number;
+  rating_very_good?: number;
+  rating_good?: number;
+  rating_acceptable?: number;
+  rating_poor?: number;
   evaluation_text: string;
   created_at: string;
 }
@@ -398,6 +411,27 @@ class FurqanDB extends Dexie {
     });
     this.version(5).stores({
       students: "id, full_name, grade, circle_id, teacher_id, payment_status, is_exempt, deleted_at, created_at",
+      teachers: "id, full_name, phone, deleted_at, created_at",
+      circles: "id, name, teacher_id, status, deleted_at, created_at",
+      sessions: "id, circle_id, date, status, deleted_at, created_at",
+      session_records: "id, session_id, student_id, is_present, created_at",
+      invoices: "id, student_id, month, status, deleted_at, created_at",
+      expenses: "id, category, date, deleted_at, created_at",
+      salary_records: "id, teacher_id, month, status, deleted_at, created_at",
+      notifications: "id, type, is_read, created_at",
+      courses: "id, name, teacher_id, status, deleted_at, created_at",
+      course_students: "id, course_id, student_id, enrolled_at",
+      course_sessions: "id, course_id, date, created_at",
+      course_session_records: "id, course_session_id, student_id, status, created_at",
+      competitions: "id, name, status, deleted_at, created_at",
+      competition_levels: "id, competition_id, name, deleted_at, created_at",
+      competition_enrollments: "id, competition_id, level_id, student_id, enrolled_at",
+      competition_results: "id, enrollment_id, competition_id, level_id, student_id, created_at",
+      monthly_reports: "id, student_id, month, created_at",
+      activity_logs: "id, action, entity_type, created_at",
+    });
+    this.version(6).stores({
+      students: "id, full_name, student_code, grade, circle_id, teacher_id, payment_status, is_exempt, deleted_at, created_at",
       teachers: "id, full_name, phone, deleted_at, created_at",
       circles: "id, name, teacher_id, status, deleted_at, created_at",
       sessions: "id, circle_id, date, status, deleted_at, created_at",
