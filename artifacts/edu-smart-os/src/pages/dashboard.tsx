@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useDashboardStats, useLeaderboard, useSessions, useNotifications } from "@/lib/store";
-import { seedDemoData, clearAllData } from "@/lib/seed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import {
   Users, GraduationCap, CircleDot, CalendarDays,
   TrendingUp, TrendingDown, Bell, Trophy,
   CheckCircle, XCircle, Wallet, Star,
   BookOpen, ArrowLeft, Calendar, BarChart3,
-  Medal, AlertTriangle, Database, Loader2,
+  Medal, AlertTriangle, Settings,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -24,25 +22,6 @@ export default function Dashboard() {
   const { leaderboard } = useLeaderboard();
   const { sessions } = useSessions();
   const { notifications } = useNotifications();
-  const [seeding, setSeeding] = useState(false);
-  const { toast } = useToast();
-
-  const handleSeedData = async (reset = false) => {
-    setSeeding(true);
-    try {
-      if (reset) await clearAllData();
-      const result = await seedDemoData();
-      if (result.skipped && !reset) {
-        toast({ title: "البيانات موجودة", description: "استخدم زر «إعادة التهيئة» لمسح البيانات وإعادة البذر من جديد." });
-      } else {
-        toast({ title: `✅ تم تحميل البيانات التجريبية`, description: "25 طالب · 4 معلمين · 5 حلقات · 3 مسابقات · دورتان + حصص وفواتير وإشعارات" });
-      }
-    } catch (err: any) {
-      toast({ title: "خطأ في تحميل البيانات", description: err?.message ?? "فشلت العملية", variant: "destructive" });
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   const unreadNotifs = notifications?.filter(n => !n.is_read).length ?? 0;
   const topStudents = leaderboard?.slice(0, 5) ?? [];
@@ -87,6 +66,8 @@ export default function Dashboard() {
     { title: "صافي الربح", value: `${(stats.profit ?? 0).toLocaleString()} ج.م`, icon: Wallet, color: (stats.profit ?? 0) >= 0 ? "text-accent" : "text-destructive", bg: (stats.profit ?? 0) >= 0 ? "bg-accent/10" : "bg-destructive/10", link: "/finance" },
   ];
 
+  const isEmpty = (stats.total_students ?? 0) === 0 && (stats.total_teachers ?? 0) === 0;
+
   return (
     <div className="space-y-8">
       <div className="flex items-start justify-between">
@@ -95,29 +76,6 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">مكتب الفرقان لتحفيظ القرآن الكريم — نظرة عامة شاملة</p>
         </div>
         <div className="flex items-center gap-3">
-          {stats.total_students === 0 ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSeedData(false)}
-              disabled={seeding}
-              className="border-primary/40 text-primary hover:bg-primary/5 font-semibold"
-            >
-              {seeding ? <Loader2 className="h-4 w-4 animate-spin ml-1" /> : <Database className="h-4 w-4 ml-1" />}
-              {seeding ? "جاري التحميل..." : "تحميل بيانات تجريبية"}
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSeedData(true)}
-              disabled={seeding}
-              className="border-amber-400/60 text-amber-700 hover:bg-amber-50 text-xs"
-            >
-              {seeding ? <Loader2 className="h-3 w-3 animate-spin ml-1" /> : <Database className="h-3 w-3 ml-1" />}
-              {seeding ? "جاري إعادة التهيئة..." : "إعادة تهيئة البيانات"}
-            </Button>
-          )}
           {unreadNotifs > 0 && (
             <Link href="/notifications">
               <Button variant="outline" size="sm" className="relative text-primary border-primary">
@@ -127,8 +85,34 @@ export default function Dashboard() {
               </Button>
             </Link>
           )}
+          <Link href="/settings">
+            <Button variant="outline" size="sm" className="gap-2 text-muted-foreground">
+              <Settings className="h-4 w-4" />
+              الإعدادات
+            </Button>
+          </Link>
         </div>
       </div>
+
+      {/* Empty state */}
+      {isEmpty && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 flex items-start gap-4">
+          <div className="bg-primary/10 p-3 rounded-xl shrink-0">
+            <Star className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-bold text-secondary text-lg mb-1">مرحباً بك في النظام</h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              ابدأ بإضافة المعلمين والطلاب والحلقات لتفعيل لوحة التحكم الشاملة.
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <Link href="/teachers"><Button size="sm" variant="outline" className="text-xs gap-1"><GraduationCap className="h-3.5 w-3.5" />إضافة معلم</Button></Link>
+              <Link href="/students"><Button size="sm" variant="outline" className="text-xs gap-1"><Users className="h-3.5 w-3.5" />إضافة طالب</Button></Link>
+              <Link href="/circles"><Button size="sm" variant="outline" className="text-xs gap-1"><CircleDot className="h-3.5 w-3.5" />إنشاء حلقة</Button></Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Smart Alerts */}
       {((stats.unpaid_invoices ?? 0) > 0 || (stats.pending_salaries ?? 0) > 0) && (
@@ -367,9 +351,9 @@ export default function Dashboard() {
                   <div className="text-xs text-muted-foreground mt-1">طالب / حلقة</div>
                 </div>
                 <div className="bg-white/60 rounded-lg p-3 border border-violet-200">
-                  <div className="text-xs text-muted-foreground mb-1">الدورات النشطة</div>
-                  <div className="text-xl font-bold text-violet-600">{stats.total_courses ?? 0}</div>
-                  <div className="text-xs text-muted-foreground mt-1">دورة تدريبية</div>
+                  <div className="text-xs text-muted-foreground mb-1">إجمالي المصروفات</div>
+                  <div className="text-xl font-bold text-violet-600">{(stats.total_expenses ?? 0).toLocaleString()} ج.م</div>
+                  <div className="text-xs text-muted-foreground mt-1">تراكمي</div>
                 </div>
                 <div className="bg-white/60 rounded-lg p-3 border border-green-200">
                   <div className="text-xs text-muted-foreground mb-1">إجمالي الإيرادات</div>

@@ -12,7 +12,7 @@ import { StoreProvider } from "@/lib/store";
 import { startAutoBackup } from "@/lib/backup";
 import { shouldShowIntro } from "@/lib/splash-settings";
 import { backfillStudentCodes } from "@/lib/store";
-import { seedDemoData } from "@/lib/seed";
+import { clearAllData } from "@/lib/seed";
 import Dashboard from "@/pages/dashboard";
 import Students from "@/pages/students";
 import Teachers from "@/pages/teachers";
@@ -32,7 +32,10 @@ import CompetitionStats from "@/pages/competition-stats";
 import SearchPage from "@/pages/search";
 import Help from "@/pages/help";
 import VideoSettings from "@/pages/video-settings";
+import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
+
+const DEMO_CLEARED_KEY = "furqan_demo_data_cleared_v1";
 
 type AppPhase = "intro" | "app";
 
@@ -48,7 +51,15 @@ function AppInit() {
   useEffect(() => {
     startAutoBackup();
     backfillStudentCodes().catch(() => {});
-    seedDemoData().catch(() => {});
+
+    // One-time: clear demo data that was auto-seeded previously
+    if (!localStorage.getItem(DEMO_CLEARED_KEY)) {
+      localStorage.setItem(DEMO_CLEARED_KEY, "1");
+      // Clear old seed flags so demo data won't get re-seeded
+      localStorage.removeItem("furqan_demo_seeded_v1");
+      localStorage.removeItem("furqan_demo_seeded_v2");
+      clearAllData().catch(() => {});
+    }
   }, []);
   return null;
 }
@@ -82,6 +93,7 @@ function MainApp() {
                   <Route path="/search" component={SearchPage} />
                   <Route path="/help" component={Help} />
                   <Route path="/video-settings" component={VideoSettings} />
+                  <Route path="/settings" component={SettingsPage} />
                   <Route component={NotFound} />
                 </Switch>
               </Layout>

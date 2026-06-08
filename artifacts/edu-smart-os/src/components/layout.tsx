@@ -14,7 +14,7 @@ import {
 import {
   LayoutDashboard, Users, GraduationCap, CircleDot, CalendarDays,
   Wallet, Bell, Trophy, BookOpen, Medal, Shield, BarChart3, FileText,
-  Volume2, VolumeX, Trash2, History, Search, PieChart, Film,
+  Volume2, VolumeX, Trash2, History, Search, PieChart, Film, Settings,
 } from "lucide-react";
 import { BackupPanel } from "@/components/backup-panel";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,7 @@ export function AppSidebar() {
   ];
 
   const systemNav = [
+    { name: "الإعدادات", path: "/settings", icon: Settings },
     { name: "سلة المحذوفات", path: "/trash", icon: Trash2 },
     { name: "سجل العمليات", path: "/activity-log", icon: History },
     { name: "الفيديو الافتتاحي", path: "/video-settings", icon: Film },

@@ -1,3 +1,3 @@
 - [EDU Smart OS Architecture](edu-smart-os.md) — local-first Dexie/IndexedDB frontend; workflow needs PORT=5000 BASE_PATH=/ env vars to start
-- [EduSmart OS features](edu-smart-os-features.md) — 17 pages, 10 modals, 96 store exports; smart detail modals, competition stats charts, global search, inline session editing. DB v5, 0 TS errors.
+- [EduSmart OS features](edu-smart-os-features.md) — 18 pages (added /settings), no AI anywhere, settings-store.ts uses localStorage, demo data auto-cleared via DEMO_CLEARED_KEY, sidebar split into main+system nav groups.
 - [Soft Delete + Activity Log](soft-delete.md) — DB v4 adds deleted_at to 9 tables + activity_logs table; all useXxx hooks filter !deleted_at; logActivity() is a private async fn in store.tsx; SafeDeleteDialog replaces confirm() dialogs; Trash + ActivityLog pages accessible via /trash and /activity-log.
